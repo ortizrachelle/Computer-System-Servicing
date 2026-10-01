@@ -653,6 +653,7 @@ async function selectTask(taskId) {
 
   const deadlineTime = task.deadline ? new Date(task.deadline).getTime() : null;
   const isExpired = deadlineTime && Date.now() > deadlineTime;
+  const subType = task.submissionType || 'file'; // 'file', 'text', or 'both'
   const reqCount = task.requiredScreenshots || 1;
   const isTeacher = currentRole === 'teacher';
 
@@ -682,7 +683,8 @@ async function selectTask(taskId) {
     <div class="lesson-card">
       <h3 style="margin-top:0; color:var(--brand-blue);">${task.title} <span style="font-size:0.80rem; color:var(--muted); font-weight:normal;">(${taskTerm})</span></h3>
       <p><strong>Deadline:</strong> ${task.deadline ? new Date(task.deadline).toLocaleString() : 'No deadline set'}</p>
-      <p><strong>Required Uploads:</strong> ${reqCount}</p>
+      <p><strong>Submission Type:</strong> ${subType === 'text' ? 'Online Text Response' : subType === 'both' ? 'File Upload & Text Response' : 'File Upload Only'}</p>
+      ${subType !== 'text' ? `<p><strong>Required Files:</strong> ${reqCount}</p>` : ''}
       
       <div style="margin-top:16px; padding:16px; background:#fff; border:1px solid var(--line); border-radius:6px; line-height:1.6;">
         <strong>Instructions:</strong><br>
@@ -699,22 +701,38 @@ async function selectTask(taskId) {
         <h3 style="margin-top:0; color:var(--brand-blue);">Your Submission</h3>
         ${existingSub ? `
           <div class="banner pass">Task submitted successfully on ${new Date(existingSub.submittedAt).toLocaleString()}</div>
-          <p><strong>Submitted Files (${existingSub.screenshots.length}):</strong></p>
-          <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:10px;">
-            ${existingSub.screenshots.map((fileData, idx) => {
-              if (fileData.startsWith('data:application/pdf') || fileData.includes('application/pdf')) {
-                return `<button class="btn ghost viewPdfBtn" data-pdf="${fileData}" style="padding:10px 15px; font-size:0.85rem;">📄 View PDF File ${idx+1}</button>`;
-              } else {
-                return `<a href="${fileData}" target="_blank"><img src="${fileData}" style="width:120px; height:90px; object-fit:cover; border:1px solid var(--line); border-radius:4px;" title="Click to view full size"></a>`;
-              }
-            }).join('')}
-          </div>
+          ${existingSub.textAnswer ? `
+            <div style="margin-top:10px; margin-bottom:14px; padding:12px; background:#f9f9f9; border:1px solid var(--line); border-radius:4px;">
+              <strong>Submitted Text Answer:</strong><br>
+              <p style="margin:6px 0 0 0; white-space:pre-wrap;">${existingSub.textAnswer}</p>
+            </div>
+          ` : ''}
+          ${existingSub.screenshots && existingSub.screenshots.length > 0 ? `
+            <p><strong>Submitted Files (${existingSub.screenshots.length}):</strong></p>
+            <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:10px;">
+              ${existingSub.screenshots.map((fileData, idx) => {
+                if (fileData.startsWith('data:application/pdf') || fileData.includes('application/pdf')) {
+                  return `<button class="btn ghost viewPdfBtn" data-pdf="${fileData}" style="padding:10px 15px; font-size:0.85rem;">📄 View PDF File ${idx+1}</button>`;
+                } else {
+                  return `<a href="${fileData}" target="_blank"><img src="${fileData}" style="width:120px; height:90px; object-fit:cover; border:1px solid var(--line); border-radius:4px;" title="Click to view full size"></a>`;
+                }
+              }).join('')}
+            </div>
+          ` : ''}
         ` : isExpired ? `
           <div class="banner info">The deadline for this task has passed. Submissions are closed.</div>
         ` : `
-          <p class="muted">Please upload ${reqCount} file(s) (Images or PDFs) below:</p>
-          <div id="uploadInputsArea"></div>
-          <button class="btn" id="submitTaskBtn" style="margin-top:16px; width:100%;">Submit Task Files</button>
+          ${subType === 'text' || subType === 'both' ? `
+            <div class="field" style="margin-bottom:14px;">
+              <label>Your Answer / Text Response</label>
+              <textarea id="studentTextAnswer" placeholder="Type your answer here..."></textarea>
+            </div>
+          ` : ''}
+          ${subType !== 'text' ? `
+            <p class="muted">Please upload ${reqCount} file below:</p>
+            <div id="uploadInputsArea"></div>
+          ` : ''}
+          <button class="btn" id="submitTaskBtn" style="margin-top:16px; width:100%;">Submit Task</button>
           <p class="muted" id="subMsg" style="margin-top:10px;"></p>
         `}
       </div>
@@ -734,44 +752,60 @@ async function selectTask(taskId) {
   }
 
   if (!isTeacher && !existingSub && !isExpired) {
-    const area = document.getElementById('uploadInputsArea');
-    let inputsHtml = '';
-    for (let i = 0; i < reqCount; i++) {
-      inputsHtml += `
-        <div class="field" style="margin-bottom:10px;">
-          <label>File ${i+1}</label>
-          <input type="file" accept="application/pdf,image/*" class="taskScreenshotFile" data-index="${i}">
-        </div>
-      `;
+    if (subType !== 'text') {
+      const area = document.getElementById('uploadInputsArea');
+      let inputsHtml = '';
+      for (let i = 0; i < reqCount; i++) {
+        inputsHtml += `
+          <div class="field" style="margin-bottom:10px;">
+            <label>File ${i+1}</label>
+            <input type="file" accept="application/pdf,image/*" class="taskScreenshotFile" data-index="${i}">
+          </div>
+        `;
+      }
+      area.innerHTML = inputsHtml;
     }
-    area.innerHTML = inputsHtml;
 
     document.getElementById('submitTaskBtn').addEventListener('click', async () => {
-      const fileInputs = document.querySelectorAll('.taskScreenshotFile');
       const msg = document.getElementById('subMsg');
       const uploadedFiles = [];
+      let textAns = '';
 
-      for (let input of fileInputs) {
-        if (input.files.length === 0) {
-          msg.textContent = `Please upload all ${reqCount} required files.`;
+      if (subType === 'text' || subType === 'both') {
+        textAns = document.getElementById('studentTextAnswer').value.trim();
+        if (subType === 'text' && !textAns) {
+          msg.textContent = 'Please enter your answer text.';
           msg.style.color = 'var(--bad)';
           return;
         }
       }
 
-      msg.textContent = 'Processing & uploading files...';
+      const fileInputs = document.querySelectorAll('.taskScreenshotFile');
+      if (subType !== 'text') {
+        for (let input of fileInputs) {
+          if (input.files.length === 0) {
+            msg.textContent = `Please upload all ${reqCount} required files.`;
+            msg.style.color = 'var(--bad)';
+            return;
+          }
+        }
+      }
+
+      msg.textContent = 'Processing & submitting task...';
       msg.style.color = 'var(--ink)';
       document.getElementById('submitTaskBtn').disabled = true;
 
       try {
-        for (let input of fileInputs) {
-          const file = input.files[0];
-          if (file.type === 'application/pdf' || file.name.endsWith('.pdf')) {
-            const pdfBase64 = await fileToDataUrl(file);
-            uploadedFiles.push(pdfBase64);
-          } else {
-            const compressedBase64 = await resizeImage(file, 800, 0.7);
-            uploadedFiles.push(compressedBase64);
+        if (subType !== 'text') {
+          for (let input of fileInputs) {
+            const file = input.files[0];
+            if (file.type === 'application/pdf' || file.name.endsWith('.pdf')) {
+              const pdfBase64 = await fileToDataUrl(file);
+              uploadedFiles.push(pdfBase64);
+            } else {
+              const compressedBase64 = await resizeImage(file, 800, 0.7);
+              uploadedFiles.push(compressedBase64);
+            }
           }
         }
 
@@ -784,6 +818,7 @@ async function selectTask(taskId) {
           studentUid: currentUser.uid,
           studentName: fullName,
           studentEmail: currentUser.email,
+          textAnswer: textAns,
           screenshots: uploadedFiles,
           submittedAt: Date.now()
         });
@@ -867,6 +902,13 @@ function renderQuizExecution(lesson){
           <div class="field"><input type="text" class="fib-answer" placeholder="Type your answer here..." data-qi="${qi}"></div>
         </div>
       `;
+    } else if (qType === 'essay') {
+      return `
+        <div class="qrow" data-qi="${qi}" data-type="essay">
+          <p><strong>${qi+1}. ${q.prompt}</strong> <span style="color:var(--muted); font-size:0.8rem;">(${pts} pt${pts>1?'s':''}) - Open-Ended</span></p>
+          <div class="field"><textarea class="essay-answer" placeholder="Type your detailed answer here..." data-qi="${qi}"></textarea></div>
+        </div>
+      `;
     } else {
       return `
         <div class="qrow" data-qi="${qi}" data-type="${qType}">
@@ -889,9 +931,14 @@ function renderQuizExecution(lesson){
     quizSelected[qi] = input.value.trim();
   }));
 
+  form.querySelectorAll('.essay-answer').forEach(textarea => textarea.addEventListener('input', () => {
+    const qi = +textarea.dataset.qi;
+    quizSelected[qi] = textarea.value.trim();
+  }));
+
   const submitQuizAction = async (isAutoSubmit = false) => {
     if (!isAutoSubmit) {
-      if (!confirm("Are u sure u want to submit?")) {
+      if (!confirm("Are you sure you want to submit?")) {
         return;
       }
     }
@@ -901,9 +948,11 @@ function renderQuizExecution(lesson){
 
     let earnedPoints = 0;
     let totalPossiblePoints = 0;
+    let essaySubmissions = [];
 
     form.querySelectorAll('.opt').forEach(btn=>btn.disabled=true);
     form.querySelectorAll('.fib-answer').forEach(inp=>inp.disabled=true);
+    form.querySelectorAll('.essay-answer').forEach(txt=>txt.disabled=true);
 
     qs.forEach((q,qi)=>{
       let qType = q.type || 'mc';
@@ -914,6 +963,12 @@ function renderQuizExecution(lesson){
         const userAns = (quizSelected[qi] || '').toString().trim().toLowerCase();
         const correctAns = (q.correctText || '').toString().trim().toLowerCase();
         if (userAns === correctAns) earnedPoints += pts;
+      } else if (qType === 'essay') {
+        essaySubmissions.push({
+          prompt: q.prompt,
+          answer: quizSelected[qi] || '',
+          maxPoints: pts
+        });
       } else {
         form.querySelectorAll(`.opt[data-qi="${qi}"]`).forEach((btn,oi)=>{
           if (oi===q.correct) btn.classList.add('correct');
@@ -934,7 +989,7 @@ function renderQuizExecution(lesson){
     let noticeText = isAutoSubmit ? 'Time is up! Your quiz was submitted automatically.' : 'Quiz submitted!';
     document.getElementById('banner').innerHTML = `
       <div class="banner info">
-        ${noticeText} Your grade for this quiz is <strong>${gradeStr}</strong>. 
+        ${noticeText} Your automated grade score is <strong>${gradeStr}</strong> (Essays pending teacher review). 
         <br><button class="btn" style="margin-top:10px;" onclick="selectLesson('${lesson.id}')">Return to course page</button>
       </div>
     `;
@@ -948,6 +1003,7 @@ function renderQuizExecution(lesson){
         studentEmail: currentUser.email,
         lessonTitle: lesson.title,
         grade: gradeStr,
+        essays: essaySubmissions,
         chanceUsed: 1,
         timestamp: Date.now()
       });
@@ -1110,6 +1166,7 @@ function loadStudentScores() {
             <th>Email Address</th>
             <th>Module / Quiz</th>
             <th>Grade</th>
+            <th>Essay Answers</th>
             <th style="width: 80px; text-align: center;">Actions</th>
           </tr>
         </thead>
@@ -1120,6 +1177,14 @@ function loadStudentScores() {
               <td>${s.studentEmail}</td>
               <td>${s.lessonTitle}</td>
               <td><strong style="color:var(--brand-blue);">${s.grade || '0.00'}</strong></td>
+              <td>
+                ${s.essays && s.essays.length > 0 ? s.essays.map((e, ei) => `
+                  <div style="font-size:0.8rem; margin-bottom:6px; background:#f9f9f9; padding:6px; border-radius:4px;">
+                    <strong>Q${ei+1}:</strong> ${e.prompt}<br>
+                    <em>Answer:</em> ${e.answer || '(No answer)'}
+                  </div>
+                `).join('') : '<span class="muted">None</span>'}
+              </td>
               <td style="text-align: center;">
                 <button class="btn ghost deleteScoreBtn" data-id="${s.id}" style="padding: 3px 8px; font-size: 0.8rem; color: var(--bad); border-color: var(--bad);" title="Delete score record">🗑</button>
               </td>
@@ -1176,19 +1241,27 @@ function loadTeacherSubmissions() {
           </div>
           <button class="btn ghost deleteSubBtn" data-id="${s.id}" style="padding: 4px 10px; font-size: 0.85rem; color: var(--bad); border-color: var(--bad);" title="Delete submission">🗑 Delete Submission</button>
         </div>
-        <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:10px;">
-          ${s.screenshots.map((fileData, idx) => {
-            if (fileData.startsWith('data:application/pdf') || fileData.includes('application/pdf')) {
-              return `<button class="btn ghost viewPdfBtn" data-pdf="${fileData}" style="padding:8px 12px; font-size:0.85rem;">📄 View PDF File ${idx+1}</button>`;
-            } else {
-              return `
-                <a href="${fileData}" target="_blank">
-                  <img src="${fileData}" style="width:140px; height:100px; object-fit:cover; border:1px solid var(--line); border-radius:4px;" title="File ${idx+1}">
-                </a>
-              `;
-            }
-          }).join('')}
-        </div>
+        ${s.textAnswer ? `
+          <div style="margin-top:8px; margin-bottom:12px; padding:10px; background:#f9f9f9; border:1px solid var(--line); border-radius:4px;">
+            <strong>Text Answer:</strong><br>
+            <p style="margin:4px 0 0 0; white-space:pre-wrap;">${s.textAnswer}</p>
+          </div>
+        ` : ''}
+        ${s.screenshots && s.screenshots.length > 0 ? `
+          <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:10px;">
+            ${s.screenshots.map((fileData, idx) => {
+              if (fileData.startsWith('data:application/pdf') || fileData.includes('application/pdf')) {
+                return `<button class="btn ghost viewPdfBtn" data-pdf="${fileData}" style="padding:8px 12px; font-size:0.85rem;">📄 View PDF File ${idx+1}</button>`;
+              } else {
+                return `
+                  <a href="${fileData}" target="_blank">
+                    <img src="${fileData}" style="width:140px; height:100px; object-fit:cover; border:1px solid var(--line); border-radius:4px;" title="File ${idx+1}">
+                  </a>
+                `;
+              }
+            }).join('')}
+          </div>
+        ` : ''}
       </div>
     `).join('');
 
@@ -1316,19 +1389,36 @@ function showAddTaskForm(editId = null) {
 
       <div class="field"><label>Task Instructions / Description</label><textarea id="taskDesc" placeholder="Describe what students need to submit...">${existingTask ? (existingTask.description || '') : ''}</textarea></div>
 
-      <div class="field"><label>Deadline (Date & Time)</label><input type="datetime-local" id="taskDeadline" value="${existingTask && existingTask.deadline ? new Date(existingTask.deadline).toISOString().slice(0,16) : ''}"></div>
+      <div class="field"><label>Submission Type</label>
+        <select id="taskSubType">
+          <option value="file" ${existingTask && existingTask.submissionType === 'file' ? 'selected' : ''}>File Upload Only (Images / PDF)</option>
+          <option value="text" ${existingTask && existingTask.submissionType === 'text' ? 'selected' : ''}>Online Text Response (Answer Box)</option>
+          <option value="both" ${existingTask && existingTask.submissionType === 'both' ? 'selected' : ''}>Both File Upload & Text Response</option>
+        </select>
+      </div>
 
-      <div class="field"><label>Number of Required Files</label><input type="number" id="taskReqCount" min="1" max="10" value="${existingTask ? (existingTask.requiredScreenshots || 1) : 1}"></div>
+      <div class="field" id="fileCountField" style="display:${existingTask && existingTask.submissionType === 'text' ? 'none' : 'block'};">
+        <label>Number of Required Files</label>
+        <input type="number" id="taskReqCount" min="1" max="10" value="${existingTask ? (existingTask.requiredScreenshots || 1) : 1}">
+      </div>
+
+      <div class="field"><label>Deadline (Date & Time)</label><input type="datetime-local" id="taskDeadline" value="${existingTask && existingTask.deadline ? new Date(existingTask.deadline).toISOString().slice(0,16) : ''}"></div>
 
       <button class="btn" id="saveTaskBtn">${existingTask ? 'Update Task' : 'Publish Task'}</button>
       <p class="muted" id="taskSaveMsg" style="margin-top:10px;"></p>
     </div>
   `;
 
+  document.getElementById('taskSubType').addEventListener('change', (e) => {
+    const val = e.target.value;
+    document.getElementById('fileCountField').style.display = val === 'text' ? 'none' : 'block';
+  });
+
   document.getElementById('saveTaskBtn').addEventListener('click', async () => {
     const title = document.getElementById('taskTitle').value.trim();
     const term = document.getElementById('taskTerm').value;
     const description = document.getElementById('taskDesc').value.trim();
+    const submissionType = document.getElementById('taskSubType').value;
     const deadlineVal = document.getElementById('taskDeadline').value;
     const requiredScreenshots = parseInt(document.getElementById('taskReqCount').value || '1', 10);
     const msg = document.getElementById('taskSaveMsg');
@@ -1346,10 +1436,10 @@ function showAddTaskForm(editId = null) {
 
     try {
       if (existingTask) {
-        await db.collection('tasks').doc(existingTask.id).update({ title, term, description, deadline, requiredScreenshots });
+        await db.collection('tasks').doc(existingTask.id).update({ title, term, description, submissionType, deadline, requiredScreenshots });
         msg.textContent = 'Task updated successfully!';
       } else {
-        await db.collection('tasks').add({ title, term, description, deadline, requiredScreenshots, hidden: false, teacherUid: currentUser.uid, createdAt: Date.now() });
+        await db.collection('tasks').add({ title, term, description, submissionType, deadline, requiredScreenshots, hidden: false, teacherUid: currentUser.uid, createdAt: Date.now() });
         msg.textContent = 'Task published successfully!';
       }
       msg.style.color = 'var(--good)';
@@ -1429,6 +1519,7 @@ function showAddLessonForm(editId = null){
             <option value="mc" ${qType==='mc'?'selected':''}>Multiple Choice</option>
             <option value="tf" ${qType==='tf'?'selected':''}>True / False</option>
             <option value="fib" ${qType==='fib'?'selected':''}>Fill in the Blank</option>
+            <option value="essay" ${qType==='essay'?'selected':''}>Open-Ended Text / Essay</option>
           </select>
         </div>
         <div class="field" style="width:130px;">
@@ -1437,7 +1528,7 @@ function showAddLessonForm(editId = null){
         </div>
       </div>
       <div class="field"><label>Question Text</label><input class="qPrompt" placeholder="Question text" value="${promptText}"></div>
-      <div class="optionsContainer" style="display:${qType==='fib'?'none':'block'}">
+      <div class="optionsContainer" style="display:${(qType==='fib' || qType==='essay')?'none':'block'}">
         <div class="field"><label>Option A <span class="tfLabel">${qType==='tf'?'(True)':''}</span></label><input class="qOptA" value="${qType==='tf'?'True':opts[0]}"></div>
         <div class="field"><label>Option B <span class="tfLabel">${qType==='tf'?'(False)':''}</span></label><input class="qOptB" value="${qType==='tf'?'False':opts[1]}"></div>
         <div class="mcOnlyFields" style="display:${qType==='tf'?'none':'block'}">
@@ -1462,6 +1553,9 @@ function showAddLessonForm(editId = null){
       if (typeSelect.value === 'fib') {
         optContainer.style.display = 'none';
         fibContainer.style.display = 'block';
+      } else if (typeSelect.value === 'essay') {
+        optContainer.style.display = 'none';
+        fibContainer.style.display = 'none';
       } else if (typeSelect.value === 'tf') {
         optContainer.style.display = 'block';
         fibContainer.style.display = 'none';
@@ -1521,6 +1615,8 @@ function showAddLessonForm(editId = null){
         if (correctText) {
           questions.push({ type, prompt, points, correctText });
         }
+      } else if (type === 'essay') {
+        questions.push({ type, prompt, points });
       } else {
         const opts = [
           row.querySelector('.qOptA').value.trim(),
