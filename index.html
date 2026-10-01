@@ -1021,7 +1021,13 @@ async function loadProfilePage() {
     }
 
     try {
-      await userDocRef.set({ fullName, lrn }, { merge: true });
+      await userDocRef.set({ 
+        fullName, 
+        lrn, 
+        email: currentUser.email, 
+        role: currentRole 
+      }, { merge: true });
+
       msg.textContent = 'Profile updated successfully!';
       msg.style.color = 'var(--good)';
     } catch(e) {
@@ -1249,17 +1255,22 @@ function loadEnrolledStudents() {
           </tr>
         </thead>
         <tbody>
-          ${students.map(s => `
-            <tr>
-              <td><strong>${s.fullName || 'Not provided'}</strong></td>
-              <td>${s.lrn || 'Not provided'}</td>
-              <td>${s.email}</td>${currentRole === 'teacher' ? `
-                <td style="text-align: center;">
-                  <button class="btn ghost deleteStudentBtn" data-id="${s.id}" style="padding: 3px 8px; font-size: 0.8rem; color: var(--bad); border-color: var(--bad);" title="Remove student account">🗑</button>
-                </td>
-              ` : ''}
-            </tr>
-          `).join('')}
+          ${students.map(s => {
+            const displayLrn = s.lrn && s.lrn.trim() !== '' && s.lrn !== 'student' 
+              ? s.lrn 
+              : '<span style="color:var(--muted)">Not provided</span>';
+            return `
+              <tr>
+                <td><strong>${s.fullName || 'Not provided'}</strong></td>
+                <td>${displayLrn}</td>
+                <td>${s.email}</td>${currentRole === 'teacher' ? `
+                  <td style="text-align: center;">
+                    <button class="btn ghost deleteStudentBtn" data-id="${s.id}" style="padding: 3px 8px; font-size: 0.8rem; color: var(--bad); border-color: var(--bad);" title="Remove student account">🗑</button>
+                  </td>
+                ` : ''}
+              </tr>
+            `;
+          }).join('')}
         </tbody>
       </table>
     `;
