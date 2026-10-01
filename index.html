@@ -1,0 +1,1562 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Computer System Servicing · Learning Management System</title>
+<link rel="icon" href="https://img.icons8.com/color/48/computer.png">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --brand-blue: #1b2a4a;
+    --brand-blue-dark: #111b33;
+    --accent-blue: #2b4c7e;
+    --bg-light: #f4f6f9;
+    --panel: #ffffff;
+    --ink: #333333;
+    --muted: #666666;
+    --line: #d3d3d3;
+    --good: #2f7d5a;
+    --bad: #b0483f;
+  }
+  *{box-sizing:border-box;} html,body{height:100%;margin:0;}
+  body{background:var(--bg-light);color:var(--ink);font-family:'Inter',system-ui,sans-serif;line-height:1.5;display:flex;flex-direction:column;}
+
+  /* Top Institution Header Banner */
+  .institution-header {
+    background: var(--brand-blue);
+    color: #fff;
+    padding: 12px 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 3px solid var(--accent-blue);
+  }
+  .inst-brand {
+    font-size: 1.15rem;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+  }
+  .inst-user {
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .inst-user button {
+    background: transparent;
+    border: 1px solid rgba(255,255,255,0.4);
+    color: #fff;
+    padding: 4px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.85rem;
+  }
+  .inst-user button:hover {
+    background: rgba(255,255,255,0.1);
+  }
+
+  /* Breadcrumb Bar */
+  .breadcrumb-bar {
+    background: #ffffff;
+    padding: 10px 24px;
+    font-size: 0.85rem;
+    color: var(--muted);
+    border-bottom: 1px solid var(--line);
+  }
+  .breadcrumb-bar span {
+    color: var(--accent-blue);
+    font-weight: 500;
+  }
+
+  /* Auth Screen Container */
+  .wrap {flex:1;display:flex;align-items:center;justify-content:center;padding:24px;}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:30px 28px;width:100%;max-width:380px;box-shadow: 0 2px 4px rgba(0,0,0,0.05);}
+  .field{margin-bottom:14px;} .field label{display:block;font-size:.85rem;margin-bottom:5px;color:var(--muted);font-weight:600;}
+  .field input, .field textarea, .field select {width:100%;padding:9px 11px;border-radius:4px;border:1px solid var(--line);background:#fff;color:var(--ink);font-family:inherit;font-size:.92rem;}
+  .field textarea{min-height:120px;resize:vertical;}
+  .btn{display:inline-block;padding:9px 18px;border-radius:4px;border:none;background:var(--accent-blue);color:#fff;font-weight:600;font-size:.9rem;cursor:pointer;font-family:inherit;}
+  .btn:hover{background:var(--brand-blue-dark);} .btn.ghost{background:transparent;color:var(--accent-blue);border:1px solid var(--accent-blue);}
+  .btn:disabled{background:var(--muted);cursor:not-allowed;}
+  .err{color:var(--bad);font-size:.85rem;margin:-6px 0 12px;display:none;}
+  .switch{font-size:.85rem;color:var(--muted);margin-top:14px;text-align:center;}
+  .switch a{color:var(--accent-blue);cursor:pointer;text-decoration:underline;}
+  .signup-field { display: none; }
+
+  /* Moodle Layout Grid */
+  .app{display:none;flex:1;overflow:hidden;}
+  .app.on{display:flex;}
+  nav.side{width:260px;flex-shrink:0;background:var(--panel);border-right:1px solid var(--line);padding:20px 14px;overflow-y:auto;}
+  .side-section-title{font-size:0.75rem;text-transform:uppercase;color:var(--muted);font-weight:700;margin:16px 8px 6px;letter-spacing:0.5px;}
+  .side-link {padding:6px 10px; border-radius:4px; font-size:0.85rem; color:var(--muted); cursor:pointer; margin-bottom:2px;}
+  .side-link:hover {background:#f0f3f8; color:var(--brand-blue);}
+  .side-link.active {background:var(--accent-blue); color:#fff; font-weight:500;}
+  
+  main{flex:1;padding:30px 4vw;overflow-y:auto;width:100%;}
+  .page-title {color: var(--brand-blue); font-size: 1.6rem; font-weight: 700; margin-bottom: 20px; border-bottom: 2px solid var(--line); padding-bottom: 8px;}
+  
+  .lesson-card{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:24px;margin:18px 0;box-shadow: 0 1px 3px rgba(0,0,0,0.03);}
+  .qrow{border-top:1px dashed var(--line);padding-top:14px;margin-top:14px;}
+  .opt{display:block;width:100%;text-align:left;padding:10px 13px;margin-bottom:7px;border:1px solid var(--line);border-radius:4px;background:#fff;color:var(--ink);cursor:pointer;font-family:inherit;}
+  .opt.selected{border-color:var(--accent-blue);background:rgba(43,76,126,.06);}
+  .opt.correct{border-color:var(--good);background:rgba(47,125,90,.12);} .opt.wrong{border-color:var(--bad);background:rgba(176,72,63,.12);}
+  
+  .banner{padding:12px 15px;border-radius:4px;margin-bottom:16px;font-weight:600;}
+  .banner.info{background:rgba(27,42,74,0.08);color:var(--brand-blue);}
+  .muted{color:var(--muted);font-size:.85rem;} .empty{padding:40px 0;text-align:center;color:var(--muted);}
+
+  table{width:100%;border-collapse:collapse;margin-top:10px;background:#fff;border:1px solid var(--line);}
+  th,td{padding:12px 14px;text-align:left;border-bottom:1px solid var(--line);font-size:0.9rem;}
+  th{background:var(--brand-blue);color:#fff;font-weight:600;}
+  tr:hover td {background: #f0f3f8;}
+</style>
+</head>
+<body>
+
+<!-- Top Institution Header Banner -->
+<div class="institution-header">
+  <div class="inst-brand">Computer System Servicing · Learning Management System</div>
+  <div class="inst-user" id="topUserArea" style="display:none;">
+    <span id="topUserEmail"></span>
+    <button id="logoutBtn">Log out</button>
+  </div>
+</div>
+
+<div class="breadcrumb-bar" id="breadcrumbBar" style="display:none;">
+  Dashboard / <span id="breadcrumbCurrent">Home</span>
+</div>
+
+<!-- Auth Screen -->
+<div class="wrap" id="authScreen">
+  <div class="card">
+    <h2 id="authTitle" style="color:var(--brand-blue);margin-top:0;">Sign in</h2>
+    <p class="muted" id="authSub">Enter your account to access your modules.</p>
+    <div class="field"><label>Email</label><input id="email" type="email" placeholder="yourname@gmail.com"></div>
+    <div class="field"><label>Password</label><input id="password" type="password" placeholder="••••••••"></div>
+    
+    <!-- Signup Specific Fields -->
+    <div class="field signup-field"><label>Full Name</label><input id="signupFullName" placeholder="Enter your full name"></div>
+    <div class="field signup-field"><label>LRN (Learner Reference Number)</label><input id="signupLrn" placeholder="Enter your LRN"></div>
+
+    <p class="err" id="authErr"></p>
+    <button class="btn" id="authBtn" style="width:100%">Log in</button>
+    <p class="switch">No account? <a id="toSignup">Create account</a></p>
+  </div>
+</div>
+
+<!-- App Workspace (Moodle Layout) -->
+<div class="app" id="appShell">
+  <nav class="side">
+    <div class="side-section-title">Navigation</div>
+    <div class="side-link" id="navDashboard">Dashboard</div>
+    <div class="side-link" id="navParticipants">Participants</div>
+
+    <div class="side-section-title">Academic Terms</div>
+    <div class="side-link" id="navTerm1">Term 1</div>
+    <div class="side-link" id="navTerm2">Term 2</div>
+    <div class="side-link" id="navTerm3">Term 3</div>
+    
+    <div class="side-section-title" id="teacherToolsTitle" style="display:none;margin-top:20px;">Teacher Management</div>
+    <button class="btn ghost" id="addLessonBtn" style="display:none;width:100%;margin-top:4px;font-size:0.85rem;">+ Add lesson</button>
+    <button class="btn ghost" id="addTaskBtn" style="display:none;width:100%;margin-top:4px;font-size:0.85rem;">+ Add task / assignment</button>
+    <button class="btn ghost" id="teacherDashBtn" style="display:none;width:100%;margin-top:6px;font-size:0.85rem;">Tab Warnings</button>
+    <button class="btn ghost" id="teacherScoresBtn" style="display:none;width:100%;margin-top:6px;font-size:0.85rem;">Student Scores</button>
+    <button class="btn ghost" id="teacherSubmissionsBtn" style="display:none;width:100%;margin-top:6px;font-size:0.85rem;">Task Submissions</button>
+    
+    <div class="side-section-title" style="margin-top:20px;">User Account</div>
+    <button class="btn ghost" id="profileBtn" style="width:100%;margin-top:4px;font-size:0.85rem;">My Profile</button>
+  </nav>
+  <main id="main"><div class="empty">Loading modules…</div></main>
+</div>
+
+<!-- Firebase SDKs -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyAf0ziolhLk9_r_bxI4BBPiV4BISqEwgqo",
+  authDomain: "css-lms-ba85d.firebaseapp.com",
+  projectId: "css-lms-ba85d",
+  storageBucket: "css-lms-ba85d.firebasestorage.app",
+  messagingSenderId: "99164143261",
+  appId: "1:99164143261:web:ec7b87a66e27281647de74"
+};
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
+
+let mode = 'signin';
+let currentRole = 'student';
+let currentUser = null;
+let lessons = [];
+let tasks = [];
+let activeId = null;
+let activeTaskId = null;
+let currentTermView = 'Term 1';
+let quizSelected = [];
+let isTakingQuiz = false;
+let quizTimerInterval = null;
+
+document.addEventListener('visibilitychange', async () => {
+  if (document.hidden && currentUser && currentRole === 'student' && isTakingQuiz) {
+    try {
+      await db.collection('tabWarnings').add({
+        studentEmail: currentUser.email,
+        uid: currentUser.uid,
+        timestamp: Date.now(),
+        message: "Student switched tabs or left the window during the quiz."
+      });
+    } catch(e) {
+      console.error("Could not log tab switch", e);
+    }
+  }
+});
+
+document.getElementById('toSignup').addEventListener('click', () => {
+  mode = mode === 'signin' ? 'signup' : 'signin';
+  document.getElementById('authTitle').textContent = mode === 'signin' ? 'Sign in' : 'Create account';
+  document.getElementById('authBtn').textContent = mode === 'signin' ? 'Log in' : 'Register';
+  
+  document.querySelectorAll('.signup-field').forEach(el => {
+    el.style.display = mode === 'signup' ? 'block' : 'none';
+  });
+
+  document.getElementById('toSignup').parentElement.innerHTML =
+    mode === 'signin' ? 'No account? <a id="toSignup">Create account</a>' : 'Have an account? <a id="toSignup">Log in</a>';
+  document.getElementById('toSignup').addEventListener('click', arguments.callee);
+});
+
+document.getElementById('authBtn').addEventListener('click', async () => {
+  const email = document.getElementById('email').value.trim();
+  const password = document.getElementById('password').value;
+  const err = document.getElementById('authErr');
+  err.style.display = 'none';
+
+  try {
+    if (mode === 'signin'){
+      await auth.signInWithEmailAndPassword(email, password);
+    } else {
+      const fullName = document.getElementById('signupFullName').value.trim();
+      const lrn = document.getElementById('signupLrn').value.trim();
+
+      if (!fullName) {
+        err.textContent = 'Full Name is required.';
+        err.style.display = 'block';
+        return;
+      }
+
+      const cred = await auth.createUserWithEmailAndPassword(email, password);
+      await db.collection('users').doc(cred.user.uid).set({ email, role: 'student', fullName, lrn });
+    }
+  } catch(e){
+    err.textContent = e.message;
+    err.style.display = 'block';
+  }
+});
+
+auth.onAuthStateChanged(async (user) => {
+  currentUser = user;
+  if (!user){
+    document.getElementById('authScreen').style.display = 'flex';
+    document.getElementById('appShell').classList.remove('on');
+    document.getElementById('topUserArea').style.display = 'none';
+    document.getElementById('breadcrumbBar').style.display = 'none';
+    return;
+  }
+  document.getElementById('authScreen').style.display = 'none';
+  document.getElementById('appShell').classList.add('on');
+  document.getElementById('topUserArea').style.display = 'flex';
+  document.getElementById('breadcrumbBar').style.display = 'block';
+  document.getElementById('topUserEmail').textContent = user.email;
+
+  const userDoc = await db.collection('users').doc(user.uid).get();
+  currentRole = userDoc.exists ? (userDoc.data().role || 'student') : 'student';
+
+  document.getElementById('logoutBtn').addEventListener('click', () => auth.signOut());
+
+  const isTeacher = currentRole === 'teacher';
+  document.getElementById('teacherToolsTitle').style.display = isTeacher ? 'block' : 'none';
+  document.getElementById('addLessonBtn').style.display = isTeacher ? 'block' : 'none';
+  document.getElementById('addLessonBtn').addEventListener('click', () => showAddLessonForm());
+
+  document.getElementById('addTaskBtn').style.display = isTeacher ? 'block' : 'none';
+  document.getElementById('addTaskBtn').addEventListener('click', () => showAddTaskForm());
+  
+  document.getElementById('teacherDashBtn').style.display = isTeacher ? 'block' : 'none';
+  document.getElementById('teacherDashBtn').addEventListener('click', loadTeacherDashboard);
+
+  document.getElementById('teacherScoresBtn').style.display = isTeacher ? 'block' : 'none';
+  document.getElementById('teacherScoresBtn').addEventListener('click', loadStudentScores);
+
+  document.getElementById('teacherSubmissionsBtn').style.display = isTeacher ? 'block' : 'none';
+  document.getElementById('teacherSubmissionsBtn').addEventListener('click', loadTeacherSubmissions);
+
+  document.getElementById('profileBtn').addEventListener('click', loadProfilePage);
+  document.getElementById('navDashboard').addEventListener('click', loadDashboardOverview);
+  
+  document.getElementById('navTerm1').addEventListener('click', () => loadTermView('Term 1'));
+  document.getElementById('navTerm2').addEventListener('click', () => loadTermView('Term 2'));
+  document.getElementById('navTerm3').addEventListener('click', () => loadTermView('Term 3'));
+
+  document.getElementById('navParticipants').addEventListener('click', loadEnrolledStudents);
+
+  db.collection('lessons').orderBy('createdAt').onSnapshot(snap => {
+    lessons = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    if (document.getElementById('breadcrumbCurrent').textContent.includes('Term')) {
+      loadTermView(currentTermView);
+    } else if (!activeId && !activeTaskId) {
+      loadDashboardOverview();
+    }
+  });
+
+  db.collection('tasks').orderBy('createdAt').onSnapshot(snap => {
+    tasks = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    if (document.getElementById('breadcrumbCurrent').textContent.includes('Term')) {
+      loadTermView(currentTermView);
+    }
+  });
+});
+
+function setActiveNav(id) {
+  document.querySelectorAll('.side-link').forEach(el => el.classList.remove('active'));
+  const target = document.getElementById(id);
+  if (target) target.classList.add('active');
+}
+
+async function loadDashboardOverview() {
+  activeId = null;
+  activeTaskId = null;
+  isTakingQuiz = false;
+  if (quizTimerInterval) clearInterval(quizTimerInterval);
+  setActiveNav('navDashboard');
+  document.getElementById('breadcrumbCurrent').textContent = "Dashboard";
+  
+  let courseTitle = "Computer System Servicing";
+  let instructorName = "Department of Technology";
+
+  try {
+    const settingsDoc = await db.collection('settings').doc('course').get();
+    if (settingsDoc.exists) {
+      const data = settingsDoc.data();
+      if (data.courseTitle) courseTitle = data.courseTitle;
+      if (data.instructorName) instructorName = data.instructorName;
+    }
+  } catch(e) {
+    console.error(e);
+  }
+
+  const isTeacher = currentRole === 'teacher';
+
+  const main = document.getElementById('main');
+  main.innerHTML = `
+    <div class="page-title" style="display:flex; justify-content:space-between; align-items:center;">
+      <span>Dashboard</span>
+      ${isTeacher ? `<button class="btn ghost" id="editCourseInfoBtn" style="font-size:0.85rem; padding:5px 12px;">Edit Course & Instructor</button>` : ''}
+    </div>
+    <div class="lesson-card">
+      <h3 style="margin-top:0; color:var(--brand-blue);">Course overview</h3>
+      <p class="muted">You are enrolled in the following active course:</p>
+      
+      <div style="border:1px solid var(--line); border-radius:6px; padding:16px; margin-top:14px; background:#fff; display:flex; justify-content:space-between; align-items:center;">
+        <div>
+          <h4 style="margin:0 0 6px 0; color:var(--brand-blue); font-size:1.05rem;">${courseTitle}</h4>
+          <p class="muted" style="margin:0; font-size:0.85rem;">Instructor: ${instructorName}</p>
+        </div>
+        <button class="btn" id="accessCourseBtn" style="font-size:0.85rem; padding:7px 14px;">Access course</button>
+      </div>
+    </div>
+  `;
+
+  document.getElementById('accessCourseBtn').addEventListener('click', () => {
+    loadTermView('Term 1');
+  });
+
+  if (isTeacher) {
+    document.getElementById('editCourseInfoBtn').addEventListener('click', () => {
+      showEditCourseModal(courseTitle, instructorName);
+    });
+  }
+}
+
+function showEditCourseModal(currentTitle, currentInstructor) {
+  const main = document.getElementById('main');
+  main.innerHTML = `
+    <div class="page-title">Edit Course & Instructor Information</div>
+    <div class="lesson-card">
+      <div class="field"><label>Course Title</label><input id="editCourseTitle" value="${currentTitle}"></div>
+      <div class="field"><label>Instructor Name</label><input id="editInstructorName" value="${currentInstructor}"></div>
+      <button class="btn" id="saveCourseInfoBtn">Save Changes</button>
+      <button class="btn ghost" id="cancelCourseInfoBtn" style="margin-left:10px;">Cancel</button>
+      <p class="muted" id="courseMsg" style="margin-top:10px;"></p>
+    </div>
+  `;
+
+  document.getElementById('cancelCourseInfoBtn').addEventListener('click', () => loadDashboardOverview());
+  document.getElementById('saveCourseInfoBtn').addEventListener('click', async () => {
+    const courseTitle = document.getElementById('editCourseTitle').value.trim();
+    const instructorName = document.getElementById('editInstructorName').value.trim();
+    const msg = document.getElementById('courseMsg');
+
+    if (!courseTitle || !instructorName) {
+      msg.textContent = 'Please fill out both fields.';
+      msg.style.color = 'var(--bad)';
+      return;
+    }
+
+    try {
+      await db.collection('settings').doc('course').set({ courseTitle, instructorName });
+      msg.textContent = 'Course info updated successfully!';
+      msg.style.color = 'var(--good)';
+      setTimeout(() => loadDashboardOverview(), 1000);
+    } catch(e) {
+      msg.textContent = 'Error saving: ' + e.message;
+      msg.style.color = 'var(--bad)';
+    }
+  });
+}
+
+function loadTermView(term) {
+  currentTermView = term;
+  activeId = null;
+  activeTaskId = null;
+  isTakingQuiz = false;
+  if (quizTimerInterval) clearInterval(quizTimerInterval);
+  
+  if (term === 'Term 1') setActiveNav('navTerm1');
+  else if (term === 'Term 2') setActiveNav('navTerm2');
+  else if (term === 'Term 3') setActiveNav('navTerm3');
+
+  document.getElementById('breadcrumbCurrent').textContent = "Computer System Servicing / " + term;
+  
+  const isTeacher = currentRole === 'teacher';
+  const termLessons = lessons.filter(l => (l.term || 'Term 1') === term && (isTeacher || !l.hidden));
+  const termTasks = tasks.filter(t => (t.term || 'Term 1') === term && (isTeacher || !t.hidden));
+  
+  let html = `<div class="page-title">${term} Content & Tasks</div>`;
+  
+  html += `<h3 style="color:var(--brand-blue); margin-top:20px;">Modules</h3>`;
+  if (termLessons.length === 0) {
+    html += `<div class="muted" style="margin-bottom:14px;">No modules published in ${term} yet.</div>`;
+  } else {
+    html += termLessons.map(l => {
+      let totalPts = 0;
+      if (l.questions) {
+        l.questions.forEach(q => totalPts += (q.points || 1));
+      }
+      return `
+        <div style="padding:14px; border:1px solid var(--line); border-radius:6px; margin-bottom:12px; display:flex; justify-content:space-between; align-items:center; background:#fff; ${l.hidden ? 'opacity:0.6;' : ''}">
+          <div style="cursor:pointer; flex:1;" onclick="selectLesson('${l.id}')">
+            <h4 style="margin:0; color:var(--brand-blue);">${l.title} ${l.hidden ? '<span style="color:var(--bad); font-size:0.75rem;">(Archived)</span>' : ''} ${l.questions && l.questions.length > 0 ? `<span style="font-size:0.75rem; color:var(--good); font-weight:normal;">(Quiz: ${totalPts} total pts)</span>` : ''}</h4>
+          </div>
+          ${isTeacher ? `
+            <div style="display:flex; gap:8px;">
+              <button class="btn ghost" style="padding:5px 10px; font-size:0.8rem;" onclick="toggleHideStatus('lesson', '${l.id}', ${!l.hidden})">${l.hidden ? 'Unarchive' : 'Archive'}</button>
+              <button class="btn ghost" style="padding:5px 10px; font-size:0.8rem;" onclick="showAddLessonForm('${l.id}')">Edit</button>
+              <button class="btn ghost" style="color:var(--bad); border-color:var(--bad); padding:5px 10px; font-size:0.8rem;" onclick="deleteLessonCard('lesson', '${l.id}')">🗑</button>
+            </div>
+          ` : ''}
+        </div>
+      `;
+    }).join('');
+  }
+
+  html += `<h3 style="color:var(--brand-blue); margin-top:25px;">Assignments & Upload Tasks</h3>`;
+  if (termTasks.length === 0) {
+    html += `<div class="muted">No upload tasks assigned in ${term} yet.</div>`;
+  } else {
+    html += termTasks.map(t => `
+      <div style="padding:14px; border:1px solid var(--line); border-radius:6px; margin-bottom:12px; display:flex; justify-content:space-between; align-items:center; background:#fff; ${t.hidden ? 'opacity:0.6;' : ''}">
+        <div style="cursor:pointer; flex:1;" onclick="selectTask('${t.id}')">
+          <h4 style="margin:0; color:var(--brand-blue);">${t.title} ${t.hidden ? '<span style="color:var(--bad); font-size:0.75rem;">(Archived)</span>' : ''} <span style="font-size:0.75rem; color:var(--muted); font-weight:normal;">(Deadline: ${t.deadline ? new Date(t.deadline).toLocaleString() : 'None'})</span></h4>
+        </div>
+        ${isTeacher ? `
+          <div style="display:flex; gap:8px;">
+            <button class="btn ghost" style="padding:5px 10px; font-size:0.8rem;" onclick="toggleHideStatus('task', '${t.id}', ${!t.hidden})">${t.hidden ? 'Unarchive' : 'Archive'}</button>
+            <button class="btn ghost" style="padding:5px 10px; font-size:0.8rem;" onclick="showAddTaskForm('${t.id}')">Edit</button>
+            <button class="btn ghost" style="color:var(--bad); border-color:var(--bad); padding:5px 10px; font-size:0.8rem;" onclick="deleteLessonCard('task', '${t.id}')">🗑</button>
+          </div>
+        ` : ''}
+      </div>
+    `).join('');
+  }
+  
+  document.getElementById('main').innerHTML = `<div class="lesson-card">${html}</div>`;
+}
+
+async function toggleHideStatus(type, id, newHiddenState) {
+  try {
+    await db.collection(type === 'lesson' ? 'lessons' : 'tasks').doc(id).update({ hidden: newHiddenState });
+    loadTermView(currentTermView);
+  } catch(e) {
+    alert("Error updating visibility: " + e.message);
+  }
+}
+
+async function deleteLessonCard(type, id) {
+  if (confirm(`Are you sure you want to delete this ${type}?`)) {
+    try {
+      await db.collection(type === 'lesson' ? 'lessons' : 'tasks').doc(id).delete();
+      loadTermView(currentTermView);
+    } catch(err) {
+      alert("Error deleting: " + err.message);
+    }
+  }
+}
+
+async function selectLesson(id){
+  activeId = id;
+  activeTaskId = null;
+  isTakingQuiz = false;
+  if (quizTimerInterval) clearInterval(quizTimerInterval);
+  document.querySelectorAll('.side-link').forEach(el => el.classList.remove('active'));
+
+  const lesson = lessons.find(l => l.id === id);
+  if (!lesson) return;
+  
+  const lessonTerm = lesson.term || "Term 1";
+  currentTermView = lessonTerm;
+
+  document.getElementById('breadcrumbCurrent').textContent = "Computer System Servicing / " + lessonTerm + " / " + lesson.title;
+  
+  const attemptsKey = 'attempts_' + lesson.id + '_' + currentUser.uid;
+  const attempts = parseInt(localStorage.getItem(attemptsKey) || '0', 10);
+  
+  let totalPts = 0;
+  if (lesson.questions) lesson.questions.forEach(q => totalPts += (q.points || 1));
+
+  const lastGrade = localStorage.getItem('lastScore_' + lesson.id + '_' + currentUser.uid) || `0.00/${totalPts.toFixed(2)}`;
+  const isTeacher = currentRole === 'teacher';
+  const hasQuiz = lesson.questions && lesson.questions.length > 0;
+  const timeLimit = lesson.timeLimit || 30;
+
+  const now = Date.now();
+  const startTime = lesson.quizStart ? new Date(lesson.quizStart).getTime() : null;
+  const endTime = lesson.quizEnd ? new Date(lesson.quizEnd).getTime() : null;
+  const notStartedYet = startTime && now < startTime;
+  const alreadyEnded = endTime && now > endTime;
+
+  let hasFullName = true;
+  if (!isTeacher && currentRole === 'student') {
+    const uDoc = await db.collection('users').doc(currentUser.uid).get();
+    if (!uDoc.exists || !uDoc.data().fullName || uDoc.data().fullName.trim() === '') {
+      hasFullName = false;
+    }
+  }
+
+  document.getElementById('main').innerHTML = `
+    <button class="btn ghost" id="backToTermBtn" style="margin-bottom: 16px; font-size: 0.85rem; padding: 6px 14px;">← Back to ${lessonTerm}</button>
+    <div class="page-title" style="display:flex; justify-content:space-between; align-items:center;">
+      <span>Computer System Servicing</span>
+      ${isTeacher ? `
+        <div style="display:flex; gap:8px;">
+          <button class="btn ghost" style="font-size:0.85rem; padding:4px 10px;" onclick="showAddLessonForm('${lesson.id}')">Edit Module</button>
+          <button class="btn ghost" style="color:var(--bad); border-color:var(--bad); font-size:0.85rem; padding:4px 10px;" onclick="deleteLessonCard('lesson', '${lesson.id}')">🗑</button>
+        </div>
+      ` : ''}
+    </div>
+    <div id="lessonContentView">
+      <div class="lesson-card">
+        <h3 style="margin-top:0; color:var(--brand-blue);">${lesson.title} <span style="font-size:0.8rem; color:var(--muted); font-weight:normal;">(${lessonTerm})</span></h3>
+      </div>
+
+      <div style="margin-top:20px;">
+        <h3>Topic Reading Material</h3>
+        <div class="lesson-card" style="padding:24px; line-height:1.6; background:#fff;">
+          ${lesson.content ? lesson.content.replace(/\n/g, '<br>') : '<p class="muted">No content provided for this topic yet.</p>'}
+        </div>
+      </div>
+
+      ${hasQuiz && !isTeacher ? `
+        <div class="lesson-card">
+          <p style="margin-top:0;"><strong>Attempts allowed:</strong> 1</p>
+          <p><strong>Time limit:</strong> ${timeLimit} minutes</p>
+          <p><strong>Quiz Start:</strong> ${startTime ? new Date(lesson.quizStart).toLocaleString() : 'Not restricted'}</p>
+          <p><strong>Quiz End:</strong> ${endTime ? new Date(lesson.quizEnd).toLocaleString() : 'Not restricted'}</p>
+          <p><strong>Quiz Total Points:</strong> ${totalPts}</p>
+        </div>
+
+        <div class="lesson-card">
+          <h3 style="margin-top:0; color:var(--brand-blue);">Summary of your previous attempts</h3>
+          ${attempts > 0 ? `
+            <table>
+              <thead>
+                <tr>
+                  <th>Attempt</th>
+                  <th>State</th>
+                  <th>Grade</th>
+                  <th>Review</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>1</td>
+                  <td>Finished<br><span class="muted">Submitted successfully</span></td>
+                  <td><strong>${lastGrade}</strong></td>
+                  <td><span style="color:var(--muted)">Not permitted</span></td>
+                </tr>
+              </tbody>
+            </table>
+            <p style="margin-top:16px; font-weight:600; color:var(--brand-blue);">Your grade for this quiz is ${lastGrade}.</p>
+          ` : '<p class="muted">No attempts have been made yet.</p>'}
+        </div>
+
+        ${attempts >= 1 ? `
+          <div class="banner info" style="text-align:center; padding:14px;">No more attempts are allowed</div>
+        ` : notStartedYet ? `
+          <div class="banner info">This quiz has not opened yet. It starts on <strong>${new Date(lesson.quizStart).toLocaleString()}</strong>.</div>
+        ` : alreadyEnded ? `
+          <div class="banner info">This quiz has already ended as of <strong>${new Date(lesson.quizEnd).toLocaleString()}</strong>.</div>
+        ` : currentRole === 'student' ? `
+          ${!hasFullName ? `
+            <div class="banner info">Please update your <strong>Full Name</strong> in <a id="goToProfile" style="cursor:pointer; text-decoration:underline;">My Profile</a> before taking this quiz.</div>
+          ` : `
+            <button class="btn" id="startQuizBtn" style="width:100%; padding:12px; font-size:1rem;">Attempt quiz now</button>
+          `}
+        ` : ''}
+      ` : ''}
+    </div>
+    <div id="quizArea" style="display:none"></div>
+  `;
+
+  document.getElementById('backToTermBtn').addEventListener('click', () => loadTermView(lessonTerm));
+
+  if (!hasFullName && document.getElementById('goToProfile')) {
+    document.getElementById('goToProfile').addEventListener('click', loadProfilePage);
+  }
+
+  if (hasQuiz && currentRole === 'student' && attempts < 1 && hasFullName && !notStartedYet && !alreadyEnded) {
+    document.getElementById('startQuizBtn').addEventListener('click', () => {
+      document.getElementById('lessonContentView').style.display = 'none';
+      document.getElementById('quizArea').style.display = 'block';
+      isTakingQuiz = true;
+      renderQuizExecution(lesson);
+    });
+  }
+}
+
+async function selectTask(taskId) {
+  activeTaskId = taskId;
+  activeId = null;
+  isTakingQuiz = false;
+  if (quizTimerInterval) clearInterval(quizTimerInterval);
+  document.querySelectorAll('.side-link').forEach(el => el.classList.remove('active'));
+
+  const task = tasks.find(t => t.id === taskId);
+  if (!task) return;
+
+  const taskTerm = task.term || "Term 1";
+  currentTermView = taskTerm;
+
+  document.getElementById('breadcrumbCurrent').textContent = "Computer System Servicing / " + taskTerm + " / " + task.title;
+
+  const deadlineTime = task.deadline ? new Date(task.deadline).getTime() : null;
+  const isExpired = deadlineTime && Date.now() > deadlineTime;
+  const reqCount = task.requiredScreenshots || 1;
+  const isTeacher = currentRole === 'teacher';
+
+  let existingSub = null;
+  if (!isTeacher) {
+    const subSnap = await db.collection('taskSubmissions')
+      .where('taskId', '==', taskId)
+      .where('studentUid', '==', currentUser.uid)
+      .get();
+    if (!subSnap.empty) {
+      existingSub = subSnap.docs[0].data();
+    }
+  }
+
+  const main = document.getElementById('main');
+  main.innerHTML = `
+    <button class="btn ghost" id="backToTermBtn" style="margin-bottom: 16px; font-size: 0.85rem; padding: 6px 14px;">← Back to ${taskTerm}</button>
+    <div class="page-title" style="display:flex; justify-content:space-between; align-items:center;">
+      <span>Assignment Task</span>
+      ${isTeacher ? `
+        <div style="display:flex; gap:8px;">
+          <button class="btn ghost" style="font-size:0.85rem; padding:4px 10px;" onclick="showAddTaskForm('${task.id}')">Edit Task</button>
+          <button class="btn ghost" style="color:var(--bad); border-color:var(--bad); font-size:0.85rem; padding:4px 10px;" onclick="deleteLessonCard('task', '${task.id}')">🗑</button>
+        </div>
+      ` : ''}
+    </div>
+    <div class="lesson-card">
+      <h3 style="margin-top:0; color:var(--brand-blue);">${task.title} <span style="font-size:0.80rem; color:var(--muted); font-weight:normal;">(${taskTerm})</span></h3>
+      <p><strong>Deadline:</strong> ${task.deadline ? new Date(task.deadline).toLocaleString() : 'No deadline set'}</p>
+      <p><strong>Required Uploads:</strong> ${reqCount}</p>
+      
+      <div style="margin-top:16px; padding:16px; background:#fff; border:1px solid var(--line); border-radius:6px; line-height:1.6;">
+        <strong>Instructions:</strong><br>
+        ${task.description ? task.description.replace(/\n/g, '<br>') : 'No instructions provided.'}
+      </div>
+    </div>
+
+    ${isTeacher ? `
+      <div class="lesson-card">
+        <p class="muted">You are viewing this task as a teacher. To review student submissions, open the <strong>Task Submissions</strong> panel from the sidebar.</p>
+      </div>
+    ` : `
+      <div class="lesson-card">
+        <h3 style="margin-top:0; color:var(--brand-blue);">Your Submission</h3>
+        ${existingSub ? `
+          <div class="banner pass">Task submitted successfully on ${new Date(existingSub.submittedAt).toLocaleString()}</div>
+          <p><strong>Submitted Files (${existingSub.screenshots.length}):</strong></p>
+          <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:10px;">
+            ${existingSub.screenshots.map((fileData, idx) => {
+              if (fileData.startsWith('data:application/pdf') || fileData.includes('application/pdf')) {
+                return `<button class="btn ghost viewPdfBtn" data-pdf="${fileData}" style="padding:10px 15px; font-size:0.85rem;">📄 View PDF File ${idx+1}</button>`;
+              } else {
+                return `<a href="${fileData}" target="_blank"><img src="${fileData}" style="width:120px; height:90px; object-fit:cover; border:1px solid var(--line); border-radius:4px;" title="Click to view full size"></a>`;
+              }
+            }).join('')}
+          </div>
+        ` : isExpired ? `
+          <div class="banner info">The deadline for this task has passed. Submissions are closed.</div>
+        ` : `
+          <p class="muted">Please upload ${reqCount} file(s) (Images or PDFs) below:</p>
+          <div id="uploadInputsArea"></div>
+          <button class="btn" id="submitTaskBtn" style="margin-top:16px; width:100%;">Submit Task Files</button>
+          <p class="muted" id="subMsg" style="margin-top:10px;"></p>
+        `}
+      </div>
+    `}
+  `;
+
+  document.getElementById('backToTermBtn').addEventListener('click', () => loadTermView(taskTerm));
+
+  if (existingSub) {
+    document.querySelectorAll('.viewPdfBtn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const pdfData = btn.dataset.pdf;
+        const win = window.open();
+        win.document.write(`<iframe src="${pdfData}" frameborder="0" style="border:0; top:0; left:0; bottom:0; right:0; width:100%; height:100%;" allowfullscreen></iframe>`);
+      });
+    });
+  }
+
+  if (!isTeacher && !existingSub && !isExpired) {
+    const area = document.getElementById('uploadInputsArea');
+    let inputsHtml = '';
+    for (let i = 0; i < reqCount; i++) {
+      inputsHtml += `
+        <div class="field" style="margin-bottom:10px;">
+          <label>File ${i+1}</label>
+          <input type="file" accept="application/pdf,image/*" class="taskScreenshotFile" data-index="${i}">
+        </div>
+      `;
+    }
+    area.innerHTML = inputsHtml;
+
+    document.getElementById('submitTaskBtn').addEventListener('click', async () => {
+      const fileInputs = document.querySelectorAll('.taskScreenshotFile');
+      const msg = document.getElementById('subMsg');
+      const uploadedFiles = [];
+
+      for (let input of fileInputs) {
+        if (input.files.length === 0) {
+          msg.textContent = `Please upload all ${reqCount} required files.`;
+          msg.style.color = 'var(--bad)';
+          return;
+        }
+      }
+
+      msg.textContent = 'Processing & uploading files...';
+      msg.style.color = 'var(--ink)';
+      document.getElementById('submitTaskBtn').disabled = true;
+
+      try {
+        for (let input of fileInputs) {
+          const file = input.files[0];
+          if (file.type === 'application/pdf' || file.name.endsWith('.pdf')) {
+            const pdfBase64 = await fileToDataUrl(file);
+            uploadedFiles.push(pdfBase64);
+          } else {
+            const compressedBase64 = await resizeImage(file, 800, 0.7);
+            uploadedFiles.push(compressedBase64);
+          }
+        }
+
+        const uDoc = await db.collection('users').doc(currentUser.uid).get();
+        const fullName = uDoc.exists && uDoc.data().fullName ? uDoc.data().fullName : 'Not provided';
+
+        await db.collection('taskSubmissions').add({
+          taskId: task.id,
+          taskTitle: task.title,
+          studentUid: currentUser.uid,
+          studentName: fullName,
+          studentEmail: currentUser.email,
+          screenshots: uploadedFiles,
+          submittedAt: Date.now()
+        });
+
+        msg.textContent = 'Task submitted successfully!';
+        msg.style.color = 'var(--good)';
+        setTimeout(() => selectTask(taskId), 1200);
+      } catch(e) {
+        msg.textContent = 'Upload error: ' + e.message;
+        msg.style.color = 'var(--bad)';
+        document.getElementById('submitTaskBtn').disabled = false;
+      }
+    });
+  }
+}
+
+function fileToDataUrl(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = event => resolve(event.target.result);
+    reader.onerror = error => reject(error);
+  });
+}
+
+function resizeImage(file, maxWidth, quality) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = event => {
+      const img = new Image();
+      img.src = event.target.result;
+      img.onload = () => {
+        let width = img.width;
+        let height = img.height;
+        if (width > maxWidth) {
+          height = Math.round((height * maxWidth) / width);
+          width = maxWidth;
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+        resolve(canvas.toDataURL('image/jpeg', quality));
+      };
+      img.onerror = error => reject(error);
+    };
+    reader.onerror = error => reject(error);
+  });
+}
+
+function renderQuizExecution(lesson){
+  const area = document.getElementById('quizArea');
+  const qs = lesson.questions || [];
+  if (!qs.length){ area.innerHTML = '<p class="muted">No quiz attached to this module.</p>'; return; }
+  
+  quizSelected = Array(qs.length).fill(null);
+  let timeLeft = (lesson.timeLimit || 30) * 60;
+
+  area.innerHTML = `
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+      <h2>${lesson.title} — Quiz Execution</h2>
+      <div id="timerBox" style="background:var(--brand-blue); color:#fff; padding:8px 14px; border-radius:4px; font-weight:600; font-size:0.95rem;">
+        Time Remaining: <span id="timeCountdown">--:--</span>
+      </div>
+    </div>
+    <div id="banner"></div>
+    <div id="qform"></div>
+    <button class="btn" id="submitQ" style="margin-top:16px">Finish attempt…</button>
+  `;
+
+  const form = document.getElementById('qform');
+  form.innerHTML = qs.map((q,qi) => {
+    let qType = q.type || 'mc';
+    let pts = q.points || 1;
+    if (qType === 'fib') {
+      return `
+        <div class="qrow" data-qi="${qi}" data-type="fib">
+          <p><strong>${qi+1}. ${q.prompt}</strong> <span style="color:var(--muted); font-size:0.8rem;">(${pts} pt${pts>1?'s':''})</span></p>
+          <div class="field"><input type="text" class="fib-answer" placeholder="Type your answer here..." data-qi="${qi}"></div>
+        </div>
+      `;
+    } else {
+      return `
+        <div class="qrow" data-qi="${qi}" data-type="${qType}">
+          <p><strong>${qi+1}. ${q.prompt}</strong> <span style="color:var(--muted); font-size:0.8rem;">(${pts} pt${pts>1?'s':''})</span></p>
+          ${q.options.map((o,oi)=>`<button type="button" class="opt" data-qi="${qi}" data-oi="${oi}">${o}</button>`).join('')}
+        </div>
+      `;
+    }
+  }).join('');
+  
+  form.querySelectorAll('.opt').forEach(btn => btn.addEventListener('click', () => {
+    const qi = +btn.dataset.qi;
+    quizSelected[qi] = +btn.dataset.oi;
+    form.querySelectorAll(`.opt[data-qi="${qi}"]`).forEach(b=>b.classList.remove('selected'));
+    btn.classList.add('selected');
+  }));
+
+  form.querySelectorAll('.fib-answer').forEach(input => input.addEventListener('input', () => {
+    const qi = +input.dataset.qi;
+    quizSelected[qi] = input.value.trim();
+  }));
+
+  const submitQuizAction = async (isAutoSubmit = false) => {
+    if (quizTimerInterval) clearInterval(quizTimerInterval);
+    isTakingQuiz = false;
+
+    if (!isAutoSubmit && quizSelected.some(s=>s===null || s==='')){
+      document.getElementById('banner').innerHTML = '<div class="banner info">Answer every question first.</div>';
+      isTakingQuiz = true;
+      startTimer();
+      return;
+    }
+
+    let earnedPoints = 0;
+    let totalPossiblePoints = 0;
+
+    form.querySelectorAll('.opt').forEach(btn=>btn.disabled=true);
+    form.querySelectorAll('.fib-answer').forEach(inp=>inp.disabled=true);
+
+    qs.forEach((q,qi)=>{
+      let qType = q.type || 'mc';
+      let pts = q.points || 1;
+      totalPossiblePoints += pts;
+
+      if (qType === 'fib') {
+        const userAns = (quizSelected[qi] || '').toString().trim().toLowerCase();
+        const correctAns = (q.correctText || '').toString().trim().toLowerCase();
+        if (userAns === correctAns) earnedPoints += pts;
+      } else {
+        form.querySelectorAll(`.opt[data-qi="${qi}"]`).forEach((btn,oi)=>{
+          if (oi===q.correct) btn.classList.add('correct');
+          else if (oi===quizSelected[qi]) btn.classList.add('wrong');
+        });
+        if (quizSelected[qi]===q.correct) earnedPoints += pts;
+      }
+    });
+
+    const gradeStr = `${earnedPoints.toFixed(2)}/${totalPossiblePoints.toFixed(2)}`;
+    const attemptsKey = 'attempts_' + lesson.id + '_' + currentUser.uid;
+    localStorage.setItem(attemptsKey, '1');
+    localStorage.setItem('lastScore_' + lesson.id + '_' + currentUser.uid, gradeStr);
+
+    document.getElementById('submitQ').style.display='none';
+    document.getElementById('timerBox').style.display='none';
+    
+    let noticeText = isAutoSubmit ? 'Time is up! Your quiz was submitted automatically.' : 'Quiz submitted!';
+    document.getElementById('banner').innerHTML = `
+      <div class="banner info">
+        ${noticeText} Your grade for this quiz is <strong>${gradeStr}</strong>. 
+        <br><button class="btn" style="margin-top:10px;" onclick="selectLesson('${lesson.id}')">Return to course page</button>
+      </div>
+    `;
+
+    try {
+      const userDoc = await db.collection('users').doc(currentUser.uid).get();
+      const fullName = userDoc.exists && userDoc.data().fullName ? userDoc.data().fullName : 'Not provided';
+
+      await db.collection('scores').add({
+        studentName: fullName,
+        studentEmail: currentUser.email,
+        lessonTitle: lesson.title,
+        grade: gradeStr,
+        chanceUsed: 1,
+        timestamp: Date.now()
+      });
+    } catch(e) {
+      console.error("Error saving score:", e);
+    }
+  };
+
+  function startTimer() {
+    if (quizTimerInterval) clearInterval(quizTimerInterval);
+    quizTimerInterval = setInterval(() => {
+      let minutes = Math.floor(timeLeft / 60);
+      let seconds = timeLeft % 60;
+      document.getElementById('timeCountdown').textContent = 
+        `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+      
+      if (timeLeft <= 0) {
+        clearInterval(quizTimerInterval);
+        submitQuizAction(true);
+      }
+      timeLeft--;
+    }, 1000);
+  }
+
+  startTimer();
+  document.getElementById('submitQ').addEventListener('click', () => submitQuizAction(false));
+}
+
+async function loadProfilePage() {
+  activeId = null;
+  activeTaskId = null;
+  isTakingQuiz = false;
+  if (quizTimerInterval) clearInterval(quizTimerInterval);
+  setActiveNav('profileBtn');
+  document.getElementById('breadcrumbCurrent').textContent = "My Profile";
+  
+  const main = document.getElementById('main');
+  main.innerHTML = `
+    <div class="page-title">User Account Profile</div>
+    <div class="lesson-card">
+      <div class="field"><label>Full Name (Required for quizzes)</label><input id="profileName" placeholder="Enter your full name"></div>
+      <div class="field"><label>LRN (Learner Reference Number)</label><input id="profileLrn" placeholder="Enter your LRN"></div>
+      <div class="field"><label>Email Address</label><input id="profileEmail" type="text" disabled></div>
+      <div class="field"><label>Account Role</label><input id="profileRole" type="text" disabled></div>
+      <button class="btn" id="saveProfileBtn">Save Changes</button>
+      <p class="muted" id="profileMsg" style="margin-top:10px;"></p>
+    </div>
+  `;
+
+  document.getElementById('profileEmail').value = currentUser.email;
+  document.getElementById('profileRole').value = currentRole.toUpperCase();
+
+  const userDocRef = db.collection('users').doc(currentUser.uid);
+  const docSnap = await userDocRef.get();
+  if (docSnap.exists) {
+    const data = docSnap.data();
+    if (data.fullName) document.getElementById('profileName').value = data.fullName;
+    if (data.lrn) document.getElementById('profileLrn').value = data.lrn;
+  }
+
+  document.getElementById('saveProfileBtn').addEventListener('click', async () => {
+    const fullName = document.getElementById('profileName').value.trim();
+    const lrn = document.getElementById('profileLrn').value.trim();
+    const msg = document.getElementById('profileMsg');
+    
+    if (!fullName) {
+      msg.textContent = 'Full name is required.';
+      msg.style.color = 'var(--bad)';
+      return;
+    }
+
+    try {
+      await userDocRef.set({ fullName, lrn }, { merge: true });
+      msg.textContent = 'Profile updated successfully!';
+      msg.style.color = 'var(--good)';
+    } catch(e) {
+      msg.textContent = 'Error updating profile: ' + e.message;
+      msg.style.color = 'var(--bad)';
+    }
+  });
+}
+
+function loadTeacherDashboard() {
+  activeId = null;
+  activeTaskId = null;
+  isTakingQuiz = false;
+  if (quizTimerInterval) clearInterval(quizTimerInterval);
+  document.querySelectorAll('.side-link').forEach(el => el.classList.remove('active'));
+  document.getElementById('breadcrumbCurrent').textContent = "Tab Warnings Dashboard";
+  document.getElementById('main').innerHTML = `
+    <div class="page-title">Teacher Dashboard</div>
+    <div class="lesson-card">
+      <h3>Tab-Switch / Focus Warnings (Quiz Only)</h3>
+      <div id="warningsList"><p class="muted">Loading alerts…</p></div>
+    </div>
+  `;
+
+  db.collection('tabWarnings').orderBy('timestamp', 'desc').onSnapshot(snap => {
+    const warnings = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    const list = document.getElementById('warningsList');
+    if (!warnings.length) {
+      list.innerHTML = '<p class="muted">No tab switches detected during quizzes yet.</p>';
+      return;
+    }
+    list.innerHTML = warnings.map(w => `
+      <div style="padding:10px 0; border-bottom:1px solid var(--line); font-size:0.9rem; display:flex; justify-content:space-between; align-items:center;">
+        <div><strong>${w.studentEmail}</strong> switched tabs at ${new Date(w.timestamp).toLocaleTimeString()}</div>
+        <button class="btn ghost deleteWarningBtn" data-id="${w.id}" style="padding: 3px 8px; font-size: 0.8rem; color: var(--bad); border-color: var(--bad);" title="Delete warning log">🗑</button>
+      </div>
+    `).join('');
+
+    document.querySelectorAll('.deleteWarningBtn').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const warnId = btn.dataset.id;
+        if (confirm("Are you sure you want to delete this warning log?")) {
+          try {
+            await db.collection('tabWarnings').doc(warnId).delete();
+          } catch(e) {
+            alert("Error deleting warning: " + e.message);
+          }
+        }
+      });
+    });
+  });
+}
+
+function loadStudentScores() {
+  activeId = null;
+  activeTaskId = null;
+  isTakingQuiz = false;
+  if (quizTimerInterval) clearInterval(quizTimerInterval);
+  document.querySelectorAll('.side-link').forEach(el => el.classList.remove('active'));
+  document.getElementById('breadcrumbCurrent').textContent = "Student Grades";
+  document.getElementById('main').innerHTML = `
+    <div class="page-title">Student Grades & Submissions</div>
+    <div class="lesson-card">
+      <h3>Quiz Summary Table</h3>
+      <div id="scoresList"><p class="muted">Loading grades…</p></div>
+    </div>
+  `;
+
+  db.collection('scores').orderBy('timestamp', 'desc').onSnapshot(snap => {
+    const scores = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    const list = document.getElementById('scoresList');
+    if (!scores.length) {
+      list.innerHTML = '<p class="muted">No quiz submissions yet.</p>';
+      return;
+    }
+    list.innerHTML = `
+      <table>
+        <thead>
+          <tr>
+            <th>Student Full Name</th>
+            <th>Email Address</th>
+            <th>Module / Quiz</th>
+            <th>Grade</th>
+            <th style="width: 80px; text-align: center;">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${scores.map(s => `
+            <tr>
+              <td><strong>${s.studentName || 'Not provided'}</strong></td>
+              <td>${s.studentEmail}</td>
+              <td>${s.lessonTitle}</td>
+              <td><strong style="color:var(--brand-blue);">${s.grade || '0.00'}</strong></td>
+              <td style="text-align: center;">
+                <button class="btn ghost deleteScoreBtn" data-id="${s.id}" style="padding: 3px 8px; font-size: 0.8rem; color: var(--bad); border-color: var(--bad);" title="Delete score record">🗑</button>
+              </td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    `;
+
+    document.querySelectorAll('.deleteScoreBtn').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const scoreId = btn.dataset.id;
+        if (confirm("Are you sure you want to delete this score record?")) {
+          try {
+            await db.collection('scores').doc(scoreId).delete();
+          } catch(e) {
+            alert("Error deleting score: " + e.message);
+          }
+        }
+      });
+    });
+  });
+}
+
+function loadTeacherSubmissions() {
+  activeId = null;
+  activeTaskId = null;
+  isTakingQuiz = false;
+  if (quizTimerInterval) clearInterval(quizTimerInterval);
+  document.querySelectorAll('.side-link').forEach(el => el.classList.remove('active'));
+  document.getElementById('breadcrumbCurrent').textContent = "Task Submissions";
+  
+  const main = document.getElementById('main');
+  main.innerHTML = `
+    <div class="page-title">Student Task Submissions</div>
+    <div class="lesson-card">
+      <div id="teacherSubsList"><p class="muted">Loading student submissions…</p></div>
+    </div>
+  `;
+
+  db.collection('taskSubmissions').orderBy('submittedAt', 'desc').onSnapshot(snap => {
+    const subs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    const list = document.getElementById('teacherSubsList');
+    if (!subs.length) {
+      list.innerHTML = '<p class="muted">No student task submissions yet.</p>';
+      return;
+    }
+    list.innerHTML = subs.map(s => `
+      <div style="border:1px solid var(--line); border-radius:6px; padding:16px; margin-bottom:14px; background:#fff; position:relative;">
+        <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+          <div>
+            <h4 style="margin:0 0 6px 0; color:var(--brand-blue);">${s.taskTitle}</h4>
+            <p class="muted" style="margin:0 0 10px 0;">Student: <strong>${s.studentName || 'Not provided'}</strong> (${s.studentEmail}) | Submitted: ${new Date(s.submittedAt).toLocaleString()}</p>
+          </div>
+          <button class="btn ghost deleteSubBtn" data-id="${s.id}" style="padding: 4px 10px; font-size: 0.85rem; color: var(--bad); border-color: var(--bad);" title="Delete submission">🗑 Delete Submission</button>
+        </div>
+        <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:10px;">
+          ${s.screenshots.map((fileData, idx) => {
+            if (fileData.startsWith('data:application/pdf') || fileData.includes('application/pdf')) {
+              return `<button class="btn ghost viewPdfBtn" data-pdf="${fileData}" style="padding:8px 12px; font-size:0.85rem;">📄 View PDF File ${idx+1}</button>`;
+            } else {
+              return `
+                <a href="${fileData}" target="_blank">
+                  <img src="${fileData}" style="width:140px; height:100px; object-fit:cover; border:1px solid var(--line); border-radius:4px;" title="File ${idx+1}">
+                </a>
+              `;
+            }
+          }).join('')}
+        </div>
+      </div>
+    `).join('');
+
+    document.querySelectorAll('.viewPdfBtn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const pdfData = btn.dataset.pdf;
+        const win = window.open();
+        win.document.write(`<iframe src="${pdfData}" frameborder="0" style="border:0; top:0; left:0; bottom:0; right:0; width:100%; height:100%;" allowfullscreen></iframe>`);
+      });
+    });
+
+    document.querySelectorAll('.deleteSubBtn').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const subId = btn.dataset.id;
+        if (confirm("Are you sure you want to delete this student submission?")) {
+          try {
+            await db.collection('taskSubmissions').doc(subId).delete();
+          } catch(e) {
+            alert("Error deleting submission: " + e.message);
+          }
+        }
+      });
+    });
+  });
+}
+
+function loadEnrolledStudents() {
+  activeId = null;
+  activeTaskId = null;
+  isTakingQuiz = false;
+  if (quizTimerInterval) clearInterval(quizTimerInterval);
+  setActiveNav('navParticipants');
+  document.getElementById('breadcrumbCurrent').textContent = "Participants";
+  document.getElementById('main').innerHTML = `
+    <div class="page-title">Enrolled Students Roster</div>
+    <div class="lesson-card">
+      <h3 style="margin-top:0; color:var(--brand-blue);">Participants Directory</h3>
+      <p id="totalStudentsCount" class="muted" style="margin-bottom: 16px;">Loading total enrolled students...</p>
+      <div id="studentsList"><p class="muted">Loading students…</p></div>
+    </div>
+  `;
+
+  db.collection('users').where('role', '==', 'student').onSnapshot(snap => {
+    const students = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    const countEl = document.getElementById('totalStudentsCount');
+    if (countEl) {
+      countEl.innerHTML = `Total Enrolled Students: <strong>${students.length}</strong>`;
+    }
+
+    const list = document.getElementById('studentsList');
+    if (!students.length) {
+      list.innerHTML = '<p class="muted">No students enrolled yet.</p>';
+      return;
+    }
+    list.innerHTML = `
+      <table>
+        <thead>
+          <tr>
+            <th>Full Name</th>
+            <th>LRN</th>
+            <th>Email Address</th>
+            ${currentRole === 'teacher' ? '<th style="width: 80px; text-align: center;">Actions</th>' : ''}
+          </tr>
+        </thead>
+        <tbody>
+          ${students.map(s => `
+            <tr>
+              <td><strong>${s.fullName || 'Not provided'}</strong></td>
+              <td>${s.lrn || 'Not provided'}</td>
+              <td>${s.email}</td>${currentRole === 'teacher' ? `
+                <td style="text-align: center;">
+                  <button class="btn ghost deleteStudentBtn" data-id="${s.id}" style="padding: 3px 8px; font-size: 0.8rem; color: var(--bad); border-color: var(--bad);" title="Remove student account">🗑</button>
+                </td>
+              ` : ''}
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    `;
+
+    if (currentRole === 'teacher') {
+      document.querySelectorAll('.deleteStudentBtn').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          const studentId = btn.dataset.id;
+          if (confirm("Are you sure you want to delete this student account record?")) {
+            try {
+              await db.collection('users').doc(studentId).delete();
+            } catch(e) {
+              alert("Error deleting student: " + e.message);
+            }
+          }
+        });
+      });
+    }
+  });
+}
+
+function showAddTaskForm(editId = null) {
+  activeId = null;
+  activeTaskId = null;
+  isTakingQuiz = false;
+  if (quizTimerInterval) clearInterval(quizTimerInterval);
+  document.querySelectorAll('.side-link').forEach(el => el.classList.remove('active'));
+
+  const existingTask = editId ? tasks.find(t => t.id === editId) : null;
+  document.getElementById('breadcrumbCurrent').textContent = existingTask ? "Edit Task" : "Add Task";
+
+  document.getElementById('main').innerHTML = `
+    <div class="page-title">${existingTask ? 'Edit Task & Deadline' : 'Create New Assignment Task'}</div>
+    <div class="lesson-card">
+      <div class="field"><label>Task Title</label><input id="taskTitle" placeholder="e.g., Motherboard Jumpstart Activity" value="${existingTask ? existingTask.title : ''}"></div>
+      
+      <div class="field"><label>Academic Term</label>
+        <select id="taskTerm">
+          <option value="Term 1" ${existingTask && existingTask.term === 'Term 1' ? 'selected' : ''}>Term 1</option>
+          <option value="Term 2" ${existingTask && existingTask.term === 'Term 2' ? 'selected' : ''}>Term 2</option>
+          <option value="Term 3" ${existingTask && existingTask.term === 'Term 3' ? 'selected' : ''}>Term 3</option>
+        </select>
+      </div>
+
+      <div class="field"><label>Task Instructions / Description</label><textarea id="taskDesc" placeholder="Describe what students need to submit...">${existingTask ? (existingTask.description || '') : ''}</textarea></div>
+
+      <div class="field"><label>Deadline (Date & Time)</label><input type="datetime-local" id="taskDeadline" value="${existingTask && existingTask.deadline ? new Date(existingTask.deadline).toISOString().slice(0,16) : ''}"></div>
+
+      <div class="field"><label>Number of Required Files</label><input type="number" id="taskReqCount" min="1" max="10" value="${existingTask ? (existingTask.requiredScreenshots || 1) : 1}"></div>
+
+      <button class="btn" id="saveTaskBtn">${existingTask ? 'Update Task' : 'Publish Task'}</button>
+      <p class="muted" id="taskSaveMsg" style="margin-top:10px;"></p>
+    </div>
+  `;
+
+  document.getElementById('saveTaskBtn').addEventListener('click', async () => {
+    const title = document.getElementById('taskTitle').value.trim();
+    const term = document.getElementById('taskTerm').value;
+    const description = document.getElementById('taskDesc').value.trim();
+    const deadlineVal = document.getElementById('taskDeadline').value;
+    const requiredScreenshots = parseInt(document.getElementById('taskReqCount').value || '1', 10);
+    const msg = document.getElementById('taskSaveMsg');
+
+    if (!title || !deadlineVal) {
+      msg.textContent = 'Please provide a title and a deadline.';
+      msg.style.color = 'var(--bad)';
+      return;
+    }
+
+    const deadline = new Date(deadlineVal).getTime();
+    const btn = document.getElementById('saveTaskBtn');
+    btn.disabled = true;
+    msg.textContent = 'Saving task...';
+
+    try {
+      if (existingTask) {
+        await db.collection('tasks').doc(existingTask.id).update({ title, term, description, deadline, requiredScreenshots });
+        msg.textContent = 'Task updated successfully!';
+      } else {
+        await db.collection('tasks').add({ title, term, description, deadline, requiredScreenshots, hidden: false, teacherUid: currentUser.uid, createdAt: Date.now() });
+        msg.textContent = 'Task published successfully!';
+      }
+      msg.style.color = 'var(--good)';
+      setTimeout(() => loadTermView(term), 1000);
+    } catch(e) {
+      msg.textContent = 'Error: ' + e.message;
+      msg.style.color = 'var(--bad)';
+      btn.disabled = false;
+    }
+  });
+}
+
+function showAddLessonForm(editId = null){
+  activeId = null;
+  activeTaskId = null;
+  isTakingQuiz = false;
+  if (quizTimerInterval) clearInterval(quizTimerInterval);
+  document.querySelectorAll('.side-link').forEach(el => el.classList.remove('active'));
+  
+  const existingLesson = editId ? lessons.find(l => l.id === editId) : null;
+  
+  document.getElementById('breadcrumbCurrent').textContent = existingLesson ? "Edit Module" : "Add Module";
+  document.getElementById('main').innerHTML = `
+    <div class="page-title">${existingLesson ? 'Edit Module' : 'Add a New Module'}</div>
+    <div class="lesson-card">
+      <div class="field"><label>Module Title</label><input id="newTitle" placeholder="e.g., Chapter 1: Motherboard Assembly" value="${existingLesson ? existingLesson.title : ''}"></div>
+      
+      <div class="field"><label>Academic Term</label>
+        <select id="newTerm">
+          <option value="Term 1" ${existingLesson && existingLesson.term === 'Term 1' ? 'selected' : ''}>Term 1</option>
+          <option value="Term 2" ${existingLesson && existingLesson.term === 'Term 2' ? 'selected' : ''}>Term 2</option>
+          <option value="Term 3" ${existingLesson && existingLesson.term === 'Term 3' ? 'selected' : ''}>Term 3</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label>Topic Content / Reading Notes</label>
+        <textarea id="lessonContentInput" placeholder="Write or paste your topic lesson notes here...">${existingLesson ? (existingLesson.content || '') : ''}</textarea>
+      </div>
+
+      <div style="display:flex; gap:12px;">
+        <div class="field" style="flex:1;"><label>Quiz Start Date & Time (Optional)</label><input id="newQuizStart" type="datetime-local" value="${existingLesson && existingLesson.quizStart ? new Date(existingLesson.quizStart).toISOString().slice(0,16) : ''}"></div>
+        <div class="field" style="flex:1;"><label>Quiz End Date & Time (Optional)</label><input id="newQuizEnd" type="datetime-local" value="${existingLesson && existingLesson.quizEnd ? new Date(existingLesson.quizEnd).toISOString().slice(0,16) : ''}"></div>
+      </div>
+
+      <div class="field">
+        <label>Quiz Time Limit (in minutes)</label>
+        <input id="newTimeLimit" type="number" value="${existingLesson ? (existingLesson.timeLimit || 30) : 30}" min="1" placeholder="30">
+      </div>
+
+      <h3 style="margin-top:20px; color:var(--brand-blue);">Quiz Questions & Points</h3>
+      <p class="muted">Set individual point weights (e.g., 1 point, 2 points, 5 points) for each question.</p>
+      <div id="qBuilder"></div>
+      <button class="btn ghost" id="addQBtn" type="button" style="margin-top:10px;">+ Add question</button>
+      <div style="margin-top:24px"><button class="btn" id="saveLessonBtn">${existingLesson ? 'Update Module' : 'Publish Module'}</button></div>
+      <p class="muted" id="saveMsg" style="margin-top:10px;"></p>
+    </div>
+  `;
+
+  const builder = document.getElementById('qBuilder');
+  function addQ(qData = {}) {
+    const qIndex = builder.querySelectorAll('.qrow').length + 1;
+    const qType = qData.type || 'mc';
+    const promptText = qData.prompt || '';
+    const qPoints = qData.points || 1;
+    const opts = qData.options || ['', '', '', ''];
+    const correctLetter = qData.correct !== undefined ? ['A', 'B', 'C', 'D'][qData.correct] : 'A';
+    const correctText = qData.correctText || '';
+
+    const div = document.createElement('div');
+    div.className = 'qrow';
+    div.innerHTML = `
+      <div style="display:flex; gap:12px;">
+        <div class="field" style="flex:1;">
+          <label>Question ${qIndex} Type</label>
+          <select class="qTypeSelect">
+            <option value="mc" ${qType==='mc'?'selected':''}>Multiple Choice</option>
+            <option value="tf" ${qType==='tf'?'selected':''}>True / False</option>
+            <option value="fib" ${qType==='fib'?'selected':''}>Fill in the Blank</option>
+          </select>
+        </div>
+        <div class="field" style="width:130px;">
+          <label>Points</label>
+          <input type="number" class="qPointsInput" min="1" max="100" value="${qPoints}">
+        </div>
+      </div>
+      <div class="field"><label>Question Text</label><input class="qPrompt" placeholder="Question text" value="${promptText}"></div>
+      <div class="optionsContainer" style="display:${qType==='fib'?'none':'block'}">
+        <div class="field"><label>Option A <span class="tfLabel">${qType==='tf'?'(True)':''}</span></label><input class="qOptA" value="${qType==='tf'?'True':opts[0]}"></div>
+        <div class="field"><label>Option B <span class="tfLabel">${qType==='tf'?'(False)':''}</span></label><input class="qOptB" value="${qType==='tf'?'False':opts[1]}"></div>
+        <div class="mcOnlyFields" style="display:${qType==='tf'?'none':'block'}">
+          <div class="field"><label>Option C</label><input class="qOptC" value="${opts[2] || ''}"></div>
+          <div class="field"><label>Option D</label><input class="qOptD" value="${opts[3] || ''}"></div>
+        </div>
+        <div class="field"><label>Correct Option Letter (A/B/C/D)</label><input class="qCorrectLetter" maxlength="1" placeholder="A" value="${correctLetter}"></div>
+      </div>
+      <div class="fibContainer" style="display:${qType==='fib'?'block':'none'}">
+        <div class="field"><label>Correct Answer Word/Phrase</label><input class="qCorrectText" placeholder="Expected answer" value="${correctText}"></div>
+      </div>
+    `;
+
+    const typeSelect = div.querySelector('.qTypeSelect');
+    const optContainer = div.querySelector('.optionsContainer');
+    const fibContainer = div.querySelector('.fibContainer');
+    const mcFields = div.querySelector('.mcOnlyFields');
+    const optA = div.querySelector('.qOptA');
+    const optB = div.querySelector('.qOptB');
+
+    typeSelect.addEventListener('change', () => {
+      if (typeSelect.value === 'fib') {
+        optContainer.style.display = 'none';
+        fibContainer.style.display = 'block';
+      } else if (typeSelect.value === 'tf') {
+        optContainer.style.display = 'block';
+        fibContainer.style.display = 'none';
+        mcFields.style.display = 'none';
+        optA.value = 'True';
+        optB.value = 'False';
+        optA.disabled = true;
+        optB.disabled = true;
+      } else {
+        optContainer.style.display = 'block';
+        fibContainer.style.display = 'none';
+        mcFields.style.display = 'block';
+        optA.disabled = false;
+        optB.disabled = false;
+        optA.value = '';
+        optB.value = '';
+      }
+    });
+
+    if (qType === 'tf') {
+      optA.disabled = true;
+      optB.disabled = true;
+    }
+
+    builder.appendChild(div);
+  }
+
+  if (existingLesson && existingLesson.questions && existingLesson.questions.length > 0) {
+    existingLesson.questions.forEach(q => addQ(q));
+  } else {
+    addQ();
+  }
+
+  document.getElementById('addQBtn').addEventListener('click', () => addQ());
+  document.getElementById('saveLessonBtn').addEventListener('click', async () => {
+    const title = document.getElementById('newTitle').value.trim();
+    const term = document.getElementById('newTerm').value;
+    const content = document.getElementById('lessonContentInput').value.trim();
+    const timeLimit = parseInt(document.getElementById('newTimeLimit').value.trim() || '30', 10);
+    
+    const quizStartVal = document.getElementById('newQuizStart').value;
+    const quizEndVal = document.getElementById('newQuizEnd').value;
+    const quizStart = quizStartVal ? new Date(quizStartVal).getTime() : null;
+    const quizEnd = quizEndVal ? new Date(quizEndVal).getTime() : null;
+
+    const rows = builder.querySelectorAll('.qrow');
+    const questions = [];
+    
+    rows.forEach(row => {
+      const type = row.querySelector('.qTypeSelect').value;
+      const prompt = row.querySelector('.qPrompt').value.trim();
+      const points = parseInt(row.querySelector('.qPointsInput').value.trim() || '1', 10);
+      if (!prompt) return;
+
+      if (type === 'fib') {
+        const correctText = row.querySelector('.qCorrectText').value.trim();
+        if (correctText) {
+          questions.push({ type, prompt, points, correctText });
+        }
+      } else {
+        const opts = [
+          row.querySelector('.qOptA').value.trim(),
+          row.querySelector('.qOptB').value.trim(),
+          type === 'mc' ? row.querySelector('.qOptC').value.trim() : null,
+          type === 'mc' ? row.querySelector('.qOptD').value.trim() : null
+        ].filter(o => o !== null);
+
+        const letter = row.querySelector('.qCorrectLetter').value.trim().toUpperCase();
+        const idx = 'ABCD'.indexOf(letter);
+        if (opts.every(o => o) && idx >= 0 && idx < opts.length) {
+          questions.push({ type, prompt, points, options: opts, correct: idx });
+        }
+      }
+    });
+
+    if (!title){
+      document.getElementById('saveMsg').textContent = 'Please enter a module title.';
+      document.getElementById('saveMsg').style.color = 'var(--bad)';
+      return;
+    }
+
+    const saveBtn = document.getElementById('saveLessonBtn');
+    const msg = document.getElementById('saveMsg');
+    
+    saveBtn.disabled = true;
+    msg.textContent = existingLesson ? 'Updating module...' : 'Publishing module...';
+    msg.style.color = 'var(--ink)';
+
+    try {
+      if (existingLesson) {
+        await db.collection('lessons').doc(existingLesson.id).update({ title, term, content, timeLimit, quizStart, quizEnd, questions });
+        msg.textContent = 'Module updated successfully!';
+      } else {
+        await db.collection('lessons').add({ title, term, content, timeLimit, quizStart, quizEnd, questions, hidden: false, teacherUid: currentUser.uid, createdAt: Date.now() });
+        msg.textContent = 'Module published successfully!';
+      }
+      msg.style.color = 'var(--good)';
+      setTimeout(() => loadTermView(term), 1000);
+    } catch(e) {
+      msg.textContent = 'Could not save: ' + e.message;
+      msg.style.color = 'var(--bad)';
+      saveBtn.disabled = false;
+    }
+  });
+}
+</script>
+</body>
+</html>

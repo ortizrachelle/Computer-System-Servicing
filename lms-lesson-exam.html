@@ -1,0 +1,808 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Computer System Servicing · Learning Management System</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --brand-red: #990000;
+    --brand-red-dark: #700000;
+    --accent-red: #b30000;
+    --bg-light: #f4f6f9;
+    --panel: #ffffff;
+    --ink: #333333;
+    --muted: #666666;
+    --line: #d3d3d3;
+    --good: #2f7d5a;
+    --bad: #b0483f;
+  }
+  *{box-sizing:border-box;} html,body{height:100%;margin:0;}
+  body{background:var(--bg-light);color:var(--ink);font-family:'Inter',system-ui,sans-serif;line-height:1.5;display:flex;flex-direction:column;}
+
+  /* Top Institution Header Banner */
+  .institution-header {
+    background: var(--brand-red);
+    color: #fff;
+    padding: 12px 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 3px solid var(--accent-red);
+  }
+  .inst-brand {
+    font-size: 1.15rem;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+  }
+  .inst-user {
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .inst-user button {
+    background: transparent;
+    border: 1px solid rgba(255,255,255,0.4);
+    color: #fff;
+    padding: 4px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.85rem;
+  }
+  .inst-user button:hover {
+    background: rgba(255,255,255,0.1);
+  }
+
+  /* Breadcrumb Bar */
+  .breadcrumb-bar {
+    background: #ffffff;
+    padding: 10px 24px;
+    font-size: 0.85rem;
+    color: var(--muted);
+    border-bottom: 1px solid var(--line);
+  }
+  .breadcrumb-bar span {
+    color: var(--accent-red);
+    font-weight: 500;
+  }
+
+  /* Auth Screen Container */
+  .wrap {flex:1;display:flex;align-items:center;justify-content:center;padding:24px;}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:30px 28px;width:100%;max-width:380px;box-shadow: 0 2px 4px rgba(0,0,0,0.05);}
+  .field{margin-bottom:14px;} .field label{display:block;font-size:.85rem;margin-bottom:5px;color:var(--muted);font-weight:600;}
+  .field input, .field textarea, .field select {width:100%;padding:9px 11px;border-radius:4px;border:1px solid var(--line);background:#fff;color:var(--ink);font-family:inherit;font-size:.92rem;}
+  .field textarea{min-height:80px;resize:vertical;}
+  .btn{display:inline-block;padding:9px 18px;border-radius:4px;border:none;background:var(--accent-red);color:#fff;font-weight:600;font-size:.9rem;cursor:pointer;font-family:inherit;}
+  .btn:hover{background:var(--brand-red);} .btn.ghost{background:transparent;color:var(--accent-red);border:1px solid var(--accent-red);}
+  .btn:disabled{background:var(--muted);cursor:not-allowed;}
+  .err{color:var(--bad);font-size:.85rem;margin:-6px 0 12px;display:none;}
+  .switch{font-size:.85rem;color:var(--muted);margin-top:14px;text-align:center;}
+  .switch a{color:var(--accent-red);cursor:pointer;text-decoration:underline;}
+
+  /* Moodle Layout Grid */
+  .app{display:none;flex:1;overflow:hidden;}
+  .app.on{display:flex;}
+  nav.side{width:260px;flex-shrink:0;background:var(--panel);border-right:1px solid var(--line);padding:20px 14px;overflow-y:auto;}
+  .side-section-title{font-size:0.75rem;text-transform:uppercase;color:var(--muted);font-weight:700;margin:16px 8px 6px;letter-spacing:0.5px;}
+  .side-link {padding:6px 10px; border-radius:4px; font-size:0.85rem; color:var(--muted); cursor:pointer; margin-bottom:2px;}
+  .side-link:hover {background:#f8f9fa; color:var(--brand-red);}
+  
+  .lrow-wrap{display:flex;align-items:center;margin-bottom:2px;}
+  .lrow{flex:1;padding:8px 10px;border-radius:4px;cursor:pointer;font-size:.9rem;color:var(--accent-red);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .lrow:hover{background:#fdf4f4;} .lrow.active{background:var(--accent-red);color:#fff;font-weight:500;}
+  .del-lesson-btn{background:transparent;border:none;color:var(--muted);cursor:pointer;font-size:0.8rem;padding:4px 6px;border-radius:4px;}
+  .del-lesson-btn:hover{background:rgba(176,72,63,0.1);color:var(--bad);}
+  
+  main{flex:1;padding:30px 4vw;overflow-y:auto;max-width:900px;margin:0 auto;width:100%;}
+  .page-title {color: var(--brand-red); font-size: 1.6rem; font-weight: 700; margin-bottom: 20px; border-bottom: 2px solid var(--line); padding-bottom: 8px;}
+  
+  .lesson-card{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:24px;margin:18px 0;box-shadow: 0 1px 3px rgba(0,0,0,0.03);}
+  .qrow{border-top:1px dashed var(--line);padding-top:14px;margin-top:14px;}
+  .opt{display:block;width:100%;text-align:left;padding:10px 13px;margin-bottom:7px;border:1px solid var(--line);border-radius:4px;background:#fff;color:var(--ink);cursor:pointer;font-family:inherit;}
+  .opt.selected{border-color:var(--accent-red);background:rgba(179,0,0,.06);}
+  .opt.correct{border-color:var(--good);background:rgba(47,125,90,.12);} .opt.wrong{border-color:var(--bad);background:rgba(176,72,63,.12);}
+  
+  .banner{padding:12px 15px;border-radius:4px;margin-bottom:16px;font-weight:600;}
+  .banner.pass{background:rgba(47,125,90,.15);color:var(--good);} .banner.fail{background:rgba(176,72,63,.15);color:var(--bad);}
+  .muted{color:var(--muted);font-size:.85rem;} .empty{padding:40px 0;text-align:center;color:var(--muted);}
+
+  table{width:100%;border-collapse:collapse;margin-top:10px;background:#fff;border:1px solid var(--line);}
+  th,td{padding:12px 14px;text-align:left;border-bottom:1px solid var(--line);font-size:0.9rem;}
+  th{background:var(--brand-red);color:#fff;font-weight:600;}
+  tr:hover td {background: #fdf8f8;}
+</style>
+</head>
+<body>
+
+<!-- Top Institution Header Banner -->
+<div class="institution-header">
+  <div class="inst-brand">Computer System Servicing · Learning Management System</div>
+  <div class="inst-user" id="topUserArea" style="display:none;">
+    <span id="topUserEmail"></span>
+    <button id="logoutBtn">Log out</button>
+  </div>
+</div>
+
+<div class="breadcrumb-bar" id="breadcrumbBar" style="display:none;">
+  Dashboard / <span id="breadcrumbCurrent">Home</span>
+</div>
+
+<!-- Auth Screen -->
+<div class="wrap" id="authScreen">
+  <div class="card">
+    <h2 id="authTitle" style="color:var(--brand-red);margin-top:0;">Sign in</h2>
+    <p class="muted" id="authSub">Enter your account to access your modules.</p>
+    <div class="field"><label>Email</label><input id="email" type="email" placeholder="you@example.com"></div>
+    <div class="field"><label>Password</label><input id="password" type="password" placeholder="••••••••"></div>
+    <p class="err" id="authErr"></p>
+    <button class="btn" id="authBtn" style="width:100%">Log in</button>
+    <p class="switch">No account? <a id="toSignup">Create account</a></p>
+  </div>
+</div>
+
+<!-- App Workspace (Moodle Layout) -->
+<div class="app" id="appShell">
+  <nav class="side">
+    <div class="side-section-title">Navigation</div>
+    <div class="side-link" id="navDashboard">Dashboard</div>
+    <div class="side-link" id="navParticipants">Participants</div>
+    <div class="side-link" id="navBadges">Badges</div>
+    <div class="side-link" id="navCompetencies">Competencies</div>
+    <div class="side-link" id="navGrades">Grades</div>
+
+    <div class="side-section-title">Academic Terms</div>
+    <div class="side-link" id="navTerm1">Term 1</div>
+    <div class="side-link" id="navTerm2">Term 2</div>
+    <div class="side-link" id="navTerm3">Term 3</div>
+
+    <div class="side-section-title" id="courseHeaderTitle">Course Modules</div>
+    <div id="lessonList"></div>
+    
+    <div class="side-section-title" id="teacherToolsTitle" style="display:none;margin-top:20px;">Teacher Management</div>
+    <button class="btn ghost" id="addLessonBtn" style="display:none;width:100%;margin-top:4px;font-size:0.85rem;">+ Add lesson</button>
+    <button class="btn ghost" id="teacherDashBtn" style="display:none;width:100%;margin-top:6px;font-size:0.85rem;">🛡 Tab Warnings</button>
+    <button class="btn ghost" id="teacherScoresBtn" style="display:none;width:100%;margin-top:6px;font-size:0.85rem;">📊 Student Scores</button>
+    <button class="btn ghost" id="teacherStudentsBtn" style="display:none;width:100%;margin-top:6px;font-size:0.85rem;">👥 Enrolled Students</button>
+    
+    <div class="side-section-title" style="margin-top:20px;">User Account</div>
+    <button class="btn ghost" id="profileBtn" style="width:100%;margin-top:4px;font-size:0.85rem;">👤 My Profile</button>
+  </nav>
+  <main id="main"><div class="empty">Loading modules…</div></main>
+</div>
+
+<!-- Firebase SDKs -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-storage-compat.js"></script>
+
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyAf0ziolhLk9_r_bxI4BBPiV4BISqEwgqo",
+  authDomain: "css-lms-ba85d.firebaseapp.com",
+  projectId: "css-lms-ba85d",
+  storageBucket: "css-lms-ba85d.firebasestorage.app",
+  messagingSenderId: "99164143261",
+  appId: "1:99164143261:web:ec7b87a66e27281647de74"
+};
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
+const storage = firebase.storage();
+
+let mode = 'signin';
+let currentRole = 'student';
+let currentUser = null;
+let lessons = [];
+let activeId = null;
+let quizSelected = [];
+let isTakingQuiz = false;
+
+document.addEventListener('visibilitychange', async () => {
+  if (document.hidden && currentUser && currentRole === 'student' && isTakingQuiz) {
+    try {
+      await db.collection('tabWarnings').add({
+        studentEmail: currentUser.email,
+        uid: currentUser.uid,
+        timestamp: Date.now(),
+        message: "Student switched tabs or left the window during the quiz."
+      });
+    } catch(e) {
+      console.error("Could not log tab switch", e);
+    }
+  }
+});
+
+document.getElementById('toSignup').addEventListener('click', () => {
+  mode = mode === 'signin' ? 'signup' : 'signin';
+  document.getElementById('authTitle').textContent = mode === 'signin' ? 'Sign in' : 'Create account';
+  document.getElementById('authBtn').textContent = mode === 'signin' ? 'Log in' : 'Register';
+  document.getElementById('toSignup').parentElement.innerHTML =
+    mode === 'signin' ? 'No account? <a id="toSignup">Create account</a>' : 'Have an account? <a id="toSignup">Log in</a>';
+  document.getElementById('toSignup').addEventListener('click', arguments.callee);
+});
+
+document.getElementById('authBtn').addEventListener('click', async () => {
+  const email = document.getElementById('email').value.trim();
+  const password = document.getElementById('password').value;
+  const err = document.getElementById('authErr');
+  err.style.display = 'none';
+  try{
+    if (mode === 'signin'){
+      await auth.signInWithEmailAndPassword(email, password);
+    } else {
+      const cred = await auth.createUserWithEmailAndPassword(email, password);
+      await db.collection('users').doc(cred.user.uid).set({ email, role: 'student', fullName: '', lrn: '' });
+    }
+  } catch(e){
+    err.textContent = e.message;
+    err.style.display = 'block';
+  }
+});
+
+auth.onAuthStateChanged(async (user) => {
+  currentUser = user;
+  if (!user){
+    document.getElementById('authScreen').style.display = 'flex';
+    document.getElementById('appShell').classList.remove('on');
+    document.getElementById('topUserArea').style.display = 'none';
+    document.getElementById('breadcrumbBar').style.display = 'none';
+    return;
+  }
+  document.getElementById('authScreen').style.display = 'none';
+  document.getElementById('appShell').classList.add('on');
+  document.getElementById('topUserArea').style.display = 'flex';
+  document.getElementById('breadcrumbBar').style.display = 'block';
+  document.getElementById('topUserEmail').textContent = user.email;
+
+  const userDoc = await db.collection('users').doc(user.uid).get();
+  currentRole = userDoc.exists ? (userDoc.data().role || 'student') : 'student';
+
+  document.getElementById('logoutBtn').addEventListener('click', () => auth.signOut());
+
+  const isTeacher = currentRole === 'teacher';
+  document.getElementById('teacherToolsTitle').style.display = isTeacher ? 'block' : 'none';
+  document.getElementById('addLessonBtn').style.display = isTeacher ? 'block' : 'none';
+  document.getElementById('addLessonBtn').addEventListener('click', showAddLessonForm);
+  
+  document.getElementById('teacherDashBtn').style.display = isTeacher ? 'block' : 'none';
+  document.getElementById('teacherDashBtn').addEventListener('click', loadTeacherDashboard);
+
+  document.getElementById('teacherScoresBtn').style.display = isTeacher ? 'block' : 'none';
+  document.getElementById('teacherScoresBtn').addEventListener('click', loadStudentScores);
+
+  document.getElementById('teacherStudentsBtn').style.display = isTeacher ? 'block' : 'none';
+  document.getElementById('teacherStudentsBtn').addEventListener('click', loadEnrolledStudents);
+
+  document.getElementById('profileBtn').addEventListener('click', loadProfilePage);
+  document.getElementById('navDashboard').addEventListener('click', loadDashboardOverview);
+  
+  document.getElementById('navTerm1').addEventListener('click', () => loadTermView('Term 1'));
+  document.getElementById('navTerm2').addEventListener('click', () => loadTermView('Term 2'));
+  document.getElementById('navTerm3').addEventListener('click', () => loadTermView('Term 3'));
+
+  document.getElementById('navParticipants').addEventListener('click', loadEnrolledStudents);
+  document.getElementById('navGrades').addEventListener('click', loadStudentScores);
+
+  db.collection('lessons').orderBy('createdAt').onSnapshot(snap => {
+    lessons = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    renderList();
+    if (!activeId) loadDashboardOverview();
+  });
+});
+
+function renderList(){
+  const list = document.getElementById('lessonList');
+  list.innerHTML = '';
+  const isTeacher = currentRole === 'teacher';
+  
+  ['Term 1', 'Term 2', 'Term 3'].forEach(term => {
+    const termLessons = lessons.filter(l => (l.term || 'Term 1') === term);
+    if (termLessons.length > 0) {
+      list.innerHTML += `<div style="font-size:0.7rem; font-weight:700; color:var(--muted); margin: 12px 0 4px 6px; text-transform:uppercase;">${term}</div>`;
+      list.innerHTML += termLessons.map(l => `
+        <div class="lrow-wrap">
+          <div class="lrow ${l.id===activeId?'active':''}" data-id="${l.id}">${l.title}</div>
+          ${isTeacher ? `<button class="del-lesson-btn" data-id="${l.id}" title="Delete module">🗑</button>` : ''}
+        </div>
+      `).join('');
+    }
+  });
+
+  document.querySelectorAll('.lrow').forEach(el => el.addEventListener('click', () => selectLesson(el.dataset.id)));
+  
+  if (isTeacher) {
+    document.querySelectorAll('.del-lesson-btn').forEach(btn => btn.addEventListener('click', async (e) => {
+      e.stopPropagation();
+      const lessonId = btn.dataset.id;
+      if (confirm("Are you sure you want to delete this module? This action cannot be undone.")) {
+        try {
+          await db.collection('lessons').doc(lessonId).delete();
+          if (activeId === lessonId) loadDashboardOverview();
+        } catch(err) {
+          alert("Error deleting module: " + err.message);
+        }
+      }
+    }));
+  }
+}
+
+function loadDashboardOverview() {
+  activeId = null;
+  isTakingQuiz = false;
+  renderList();
+  document.getElementById('breadcrumbCurrent').textContent = "Dashboard";
+  
+  const main = document.getElementById('main');
+  main.innerHTML = `
+    <div class="page-title">Dashboard</div>
+    <div class="lesson-card">
+      <h3 style="margin-top:0; color:var(--brand-red);">Course overview</h3>
+      <p class="muted">You are enrolled in the following active course:</p>
+      
+      <div style="border:1px solid var(--line); border-radius:6px; padding:16px; margin-top:14px; background:#fff; display:flex; justify-content:space-between; align-items:center;">
+        <div>
+          <h4 style="margin:0 0 6px 0; color:var(--brand-red); font-size:1.05rem;">Computer System Servicing</h4>
+          <p class="muted" style="margin:0; font-size:0.85rem;">Instructor: Department of Technology</p>
+        </div>
+        <button class="btn" id="accessCourseBtn" style="font-size:0.85rem; padding:7px 14px;">Access course</button>
+      </div>
+    </div>
+  `;
+
+  document.getElementById('accessCourseBtn').addEventListener('click', () => {
+    loadTermView('Term 1');
+  });
+}
+
+function loadTermView(term) {
+  activeId = null;
+  isTakingQuiz = false;
+  renderList();
+  document.getElementById('breadcrumbCurrent').textContent = "Computer System Servicing / " + term;
+  
+  const termLessons = lessons.filter(l => (l.term || 'Term 1') === term);
+  const isTeacher = currentRole === 'teacher';
+  
+  let html = `<div class="page-title">${term} Modules</div>`;
+  if (termLessons.length === 0) {
+    html += `<div class="empty">No modules published in ${term} yet.</div>`;
+  } else {
+    html += `<div class="lesson-card"><p class="muted" style="margin-top:0;">Select a module below to view the PDF reading material and take its quiz.</p>`;
+    html += termLessons.map(l => `
+      <div style="padding:14px; border:1px solid var(--line); border-radius:6px; margin-bottom:12px; display:flex; justify-content:space-between; align-items:center;">
+        <div style="cursor:pointer; flex:1;" onclick="selectLesson('${l.id}')">
+          <h4 style="margin:0; color:var(--brand-red);">${l.title}</h4>
+        </div>
+        ${isTeacher ? `<button class="btn ghost" style="color:var(--bad); border-color:var(--bad); padding:5px 10px; font-size:0.8rem;" onclick="deleteLessonCard('${l.id}')">Delete Module</button>` : ''}
+      </div>
+    `).join('');
+    html += `</div>`;
+  }
+  
+  document.getElementById('main').innerHTML = html;
+}
+
+async function deleteLessonCard(lessonId) {
+  if (confirm("Are you sure you want to delete this module?")) {
+    try {
+      await db.collection('lessons').doc(lessonId).delete();
+      loadDashboardOverview();
+    } catch(err) {
+      alert("Error deleting module: " + err.message);
+    }
+  }
+}
+
+function selectLesson(id){
+  activeId = id;
+  isTakingQuiz = false;
+  renderList();
+  const lesson = lessons.find(l => l.id === id);
+  if (!lesson) return;
+  
+  document.getElementById('breadcrumbCurrent').textContent = "Computer System Servicing / " + (lesson.term || "Term 1") + " / " + lesson.title;
+  
+  const attemptsKey = 'attempts_' + lesson.id + '_' + currentUser.uid;
+  const attempts = parseInt(localStorage.getItem(attemptsKey) || '0', 10);
+  const lastScore = localStorage.getItem('lastScore_' + lesson.id + '_' + currentUser.uid) || '0.00/30.00';
+  const isTeacher = currentRole === 'teacher';
+
+  document.getElementById('main').innerHTML = `
+    <div class="page-title" style="display:flex; justify-content:space-between; align-items:center;">
+      <span>Computer System Servicing</span>
+      ${isTeacher ? `<button class="btn ghost" style="color:var(--bad); border-color:var(--bad); font-size:0.85rem; padding:4px 10px;" onclick="deleteLessonCard('${lesson.id}')">🗑 Delete Module</button>` : ''}
+    </div>
+    <div id="lessonContentView">
+      <div class="lesson-card">
+        <h3 style="margin-top:0; color:var(--brand-red);">${lesson.title} <span style="font-size:0.8rem; color:var(--muted); font-weight:normal;">(${lesson.term || 'Term 1'})</span></h3>
+        <p style="margin-top:0;"><strong>Attempts allowed:</strong> 1</p>
+        <p><strong>Time limit:</strong> 30 mins</p>
+      </div>
+
+      <div class="lesson-card">
+        <h3 style="margin-top:0; color:var(--brand-red);">Summary of your previous attempts</h3>
+        ${attempts > 0 ? `
+          <table>
+            <thead>
+              <tr>
+                <th>Attempt</th>
+                <th>State</th>
+                <th>Grade / 30.00</th>
+                <th>Review</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>1</td>
+                <td>Finished<br><span class="muted">Submitted successfully</span></td>
+                <td><strong>${lastScore}</strong></td>
+                <td><span style="color:var(--muted)">Not permitted</span></td>
+              </tr>
+            </tbody>
+          </table>
+          <p style="margin-top:16px; font-weight:600; color:var(--brand-red);">Your final grade for this quiz is ${lastScore}.</p>
+        ` : '<p class="muted">No attempts have been made yet.</p>'}
+      </div>
+
+      ${attempts >= 1 ? `
+        <div class="banner fail" style="text-align:center; padding:14px;">No more attempts are allowed</div>
+      ` : currentRole === 'student' ? `
+        <button class="btn" id="startQuizBtn" style="width:100%; padding:12px; font-size:1rem;">Attempt quiz now</button>
+      ` : ''}
+      
+      <div style="margin-top:20px;">
+        <h3>Module Reading Material (PDF)</h3>
+        <div class="lesson-card" style="padding:16px;">
+          ${lesson.pdfUrl ? `
+            <iframe src="${lesson.pdfUrl}" width="100%" height="600px" style="border:1px solid var(--line); border-radius:4px;"></iframe>
+            <div style="margin-top:12px;">
+              <a href="${lesson.pdfUrl}" target="_blank" class="btn ghost" style="text-decoration:none;">📥 Open / Download PDF</a>
+            </div>
+          ` : '<p class="muted">No PDF attached to this module.</p>'}
+        </div>
+      </div>
+    </div>
+    <div id="quizArea" style="display:none"></div>
+  `;
+
+  if (currentRole === 'student' && attempts < 1) {
+    document.getElementById('startQuizBtn').addEventListener('click', () => {
+      document.getElementById('lessonContentView').style.display = 'none';
+      document.getElementById('quizArea').style.display = 'block';
+      isTakingQuiz = true;
+      renderQuizExecution(lesson);
+    });
+  }
+}
+
+function renderQuizExecution(lesson){
+  const area = document.getElementById('quizArea');
+  const qs = lesson.questions || [];
+  if (!qs.length){ area.innerHTML = '<p class="muted">No quiz attached to this module.</p>'; return; }
+  
+  quizSelected = Array(qs.length).fill(null);
+  area.innerHTML = `
+    <h2>${lesson.title} — Quiz Execution</h2>
+    <div id="banner"></div>
+    <div id="qform"></div>
+    <button class="btn" id="submitQ" style="margin-top:16px">Finish attempt…</button>
+  `;
+  const form = document.getElementById('qform');
+  form.innerHTML = qs.map((q,qi) => `
+    <div class="qrow">
+      <p><strong>${qi+1}. ${q.prompt}</strong></p>
+      ${q.options.map((o,oi)=>`<button type="button" class="opt" data-qi="${qi}" data-oi="${oi}">${o}</button>`).join('')}
+    </div>
+  `).join('');
+  
+  form.querySelectorAll('.opt').forEach(btn => btn.addEventListener('click', () => {
+    const qi = +btn.dataset.qi;
+    quizSelected[qi] = +btn.dataset.oi;
+    form.querySelectorAll(`.opt[data-qi="${qi}"]`).forEach(b=>b.classList.remove('selected'));
+    btn.classList.add('selected');
+  }));
+
+  document.getElementById('submitQ').addEventListener('click', async () => {
+    if (quizSelected.some(s=>s===null)){
+      document.getElementById('banner').innerHTML = '<div class="banner fail">Answer every question first.</div>';
+      return;
+    }
+    isTakingQuiz = false;
+
+    let correct = 0;
+    form.querySelectorAll('.opt').forEach(btn=>btn.disabled=true);
+    qs.forEach((q,qi)=>{
+      form.querySelectorAll(`.opt[data-qi="${qi}"]`).forEach((btn,oi)=>{
+        if (oi===q.correct) btn.classList.add('correct');
+        else if (oi===quizSelected[qi]) btn.classList.add('wrong');
+      });
+      if (quizSelected[qi]===q.correct) correct++;
+    });
+
+    const scaledScore = ((correct / qs.length) * 30).toFixed(2);
+    const attemptsKey = 'attempts_' + lesson.id + '_' + currentUser.uid;
+    localStorage.setItem(attemptsKey, '1');
+    localStorage.setItem('lastScore_' + lesson.id + '_' + currentUser.uid, `${scaledScore}/30.00`);
+
+    const passed = correct/qs.length >= 0.7;
+    document.getElementById('submitQ').style.display='none';
+    document.getElementById('banner').innerHTML = `
+      <div class="banner ${passed ? 'pass' : 'fail'}">
+        Quiz submitted! Your grade: ${scaledScore}/30.00. 
+        <br><button class="btn" style="margin-top:10px;" onclick="selectLesson('${lesson.id}')">Return to course page</button>
+      </div>
+    `;
+
+    try {
+      await db.collection('scores').add({
+        studentEmail: currentUser.email,
+        lessonTitle: lesson.title,
+        score: `${scaledScore}/30.00`,
+        chanceUsed: 1,
+        passed: passed,
+        timestamp: Date.now()
+      });
+    } catch(e) {
+      console.error("Error saving score:", e);
+    }
+  });
+}
+
+async function loadProfilePage() {
+  activeId = null;
+  isTakingQuiz = false;
+  renderList();
+  document.getElementById('breadcrumbCurrent').textContent = "My Profile";
+  
+  const main = document.getElementById('main');
+  main.innerHTML = `
+    <div class="page-title">User Account Profile</div>
+    <div class="lesson-card">
+      <div class="field"><label>Full Name</label><input id="profileName" placeholder="Enter your full name"></div>
+      <div class="field"><label>LRN (Learner Reference Number)</label><input id="profileLrn" placeholder="Enter your LRN"></div>
+      <div class="field"><label>Email Address</label><input id="profileEmail" type="text" disabled></div>
+      <div class="field"><label>Account Role</label><input id="profileRole" type="text" disabled></div>
+      <button class="btn" id="saveProfileBtn">Save Changes</button>
+      <p class="muted" id="profileMsg" style="margin-top:10px;"></p>
+    </div>
+  `;
+
+  document.getElementById('profileEmail').value = currentUser.email;
+  document.getElementById('profileRole').value = currentRole.toUpperCase();
+
+  const userDocRef = db.collection('users').doc(currentUser.uid);
+  const docSnap = await userDocRef.get();
+  if (docSnap.exists) {
+    const data = docSnap.data();
+    if (data.fullName) document.getElementById('profileName').value = data.fullName;
+    if (data.lrn) document.getElementById('profileLrn').value = data.lrn;
+  }
+
+  document.getElementById('saveProfileBtn').addEventListener('click', async () => {
+    const fullName = document.getElementById('profileName').value.trim();
+    const lrn = document.getElementById('profileLrn').value.trim();
+    const msg = document.getElementById('profileMsg');
+    try {
+      await userDocRef.set({ fullName, lrn }, { merge: true });
+      msg.textContent = 'Profile updated successfully!';
+      msg.style.color = 'var(--good)';
+    } catch(e) {
+      msg.textContent = 'Error updating profile: ' + e.message;
+      msg.style.color = 'var(--bad)';
+    }
+  });
+}
+
+function loadTeacherDashboard() {
+  activeId = null;
+  isTakingQuiz = false;
+  renderList();
+  document.getElementById('breadcrumbCurrent').textContent = "Tab Warnings Dashboard";
+  document.getElementById('main').innerHTML = `
+    <div class="page-title">Teacher Dashboard</div>
+    <div class="lesson-card">
+      <h3>Tab-Switch / Focus Warnings (Quiz Only)</h3>
+      <div id="warningsList"><p class="muted">Loading alerts…</p></div>
+    </div>
+  `;
+
+  db.collection('tabWarnings').orderBy('timestamp', 'desc').onSnapshot(snap => {
+    const warnings = snap.docs.map(d => d.data());
+    const list = document.getElementById('warningsList');
+    if (!warnings.length) {
+      list.innerHTML = '<p class="muted">No tab switches detected during quizzes yet.</p>';
+      return;
+    }
+    list.innerHTML = warnings.map(w => `
+      <div style="padding:8px 0; border-bottom:1px solid var(--line); font-size:0.9rem;">
+        <strong>${w.studentEmail}</strong> switched tabs at ${new Date(w.timestamp).toLocaleTimeString()}
+      </div>
+    `).join('');
+  });
+}
+
+function loadStudentScores() {
+  activeId = null;
+  isTakingQuiz = false;
+  renderList();
+  document.getElementById('breadcrumbCurrent').textContent = "Student Grades";
+  document.getElementById('main').innerHTML = `
+    <div class="page-title">Student Grades & Submissions</div>
+    <div class="lesson-card">
+      <h3>Quiz Summary Table</h3>
+      <div id="scoresList"><p class="muted">Loading scores…</p></div>
+    </div>
+  `;
+
+  db.collection('scores').orderBy('timestamp', 'desc').onSnapshot(snap => {
+    const scores = snap.docs.map(d => d.data());
+    const list = document.getElementById('scoresList');
+    if (!scores.length) {
+      list.innerHTML = '<p class="muted">No quiz submissions yet.</p>';
+      return;
+    }
+    list.innerHTML = `
+      <table>
+        <thead>
+          <tr>
+            <th>Student Email</th>
+            <th>Module / Quiz</th>
+            <th>Score</th>
+            <th>Attempt</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${scores.map(s => `
+            <tr>
+              <td>${s.studentEmail}</td>
+              <td>${s.lessonTitle}</td>
+              <td><strong>${s.score}</strong></td>
+              <td>Attempt ${s.chanceUsed} of 1</td>
+              <td><span style="color: ${s.passed ? 'var(--good)' : 'var(--bad)'}; font-weight:600;">${s.passed ? 'Passed' : 'Failed'}</span></td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    `;
+  });
+}
+
+function loadEnrolledStudents() {
+  activeId = null;
+  isTakingQuiz = false;
+  renderList();
+  document.getElementById('breadcrumbCurrent').textContent = "Participants";
+  document.getElementById('main').innerHTML = `
+    <div class="page-title">Enrolled Students Roster</div>
+    <div class="lesson-card">
+      <h3>Participants Directory</h3>
+      <div id="studentsList"><p class="muted">Loading students…</p></div>
+    </div>
+  `;
+
+  db.collection('users').where('role', '==', 'student').onSnapshot(snap => {
+    const students = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    const list = document.getElementById('studentsList');
+    if (!students.length) {
+      list.innerHTML = '<p class="muted">No students enrolled yet.</p>';
+      return;
+    }
+    list.innerHTML = `
+      <table>
+        <thead>
+          <tr>
+            <th>Full Name</th>
+            <th>LRN</th>
+            <th>Email Address</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${students.map(s => `
+            <tr>
+              <td><strong>${s.fullName || 'Not provided'}</strong></td>
+              <td>${s.lrn || 'Not provided'}</td>
+              <td>${s.email}</td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    `;
+  });
+}
+
+function showAddLessonForm(){
+  activeId = null;
+  isTakingQuiz = false;
+  renderList();
+  document.getElementById('breadcrumbCurrent').textContent = "Add Module";
+  document.getElementById('main').innerHTML = `
+    <div class="page-title">Add a New Module</div>
+    <div class="lesson-card">
+      <div class="field"><label>Module Title</label><input id="newTitle" placeholder="e.g., Chapter 1: Motherboard Assembly"></div>
+      
+      <div class="field"><label>Academic Term</label>
+        <select id="newTerm">
+          <option value="Term 1">Term 1</option>
+          <option value="Term 2">Term 2</option>
+          <option value="Term 3">Term 3</option>
+        </select>
+      </div>
+
+      <div class="field"><label>Upload PDF Module File</label><input type="file" id="pdfFile" accept="application/pdf"></div>
+
+      <h3 style="margin-top:20px; color:var(--brand-red);">Quiz Questions</h3>
+      <div id="qBuilder"></div>
+      <button class="btn ghost" id="addQBtn" type="button" style="margin-top:10px;">+ Add question</button>
+      <div style="margin-top:24px"><button class="btn" id="saveLessonBtn">Publish Module</button></div>
+      <p class="muted" id="saveMsg" style="margin-top:10px;"></p>
+    </div>
+  `;
+  let qCount = 0;
+  const builder = document.getElementById('qBuilder');
+  function addQ(){
+    qCount++;
+    const div = document.createElement('div');
+    div.className = 'qrow';
+    div.innerHTML = `
+      <div class="field"><label>Question ${qCount}</label><input class="qPrompt" placeholder="Question text"></div>
+      <div class="field"><label>Option A</label><input class="qOpt"></div>
+      <div class="field"><label>Option B</label><input class="qOpt"></div>
+      <div class="field"><label>Option C</label><input class="qOpt"></div>
+      <div class="field"><label>Option D</label><input class="qOpt"></div>
+      <div class="field"><label>Correct option (A/B/C/D)</label><input class="qCorrect" maxlength="1" placeholder="A"></div>
+    `;
+    builder.appendChild(div);
+  }
+  addQ();
+  document.getElementById('addQBtn').addEventListener('click', addQ);
+  document.getElementById('saveLessonBtn').addEventListener('click', async () => {
+    const title = document.getElementById('newTitle').value.trim();
+    const term = document.getElementById('newTerm').value;
+    const fileInput = document.getElementById('pdfFile');
+    const rows = builder.querySelectorAll('.qrow');
+    const questions = [];
+    
+    rows.forEach(row => {
+      const prompt = row.querySelector('.qPrompt').value.trim();
+      const opts = [...row.querySelectorAll('.qOpt')].map(i=>i.value.trim());
+      const letter = row.querySelector('.qCorrect').value.trim().toUpperCase();
+      const idx = 'ABCD'.indexOf(letter);
+      if (prompt && opts.every(o=>o) && idx>=0) questions.push({prompt, options: opts, correct: idx});
+    });
+
+    if (!title || fileInput.files.length === 0){
+      document.getElementById('saveMsg').textContent = 'Please enter a title and select a PDF file.';
+      document.getElementById('saveMsg').style.color = 'var(--bad)';
+      return;
+    }
+
+    const file = fileInput.files[0];
+    const saveBtn = document.getElementById('saveLessonBtn');
+    const msg = document.getElementById('saveMsg');
+    
+    saveBtn.disabled = true;
+    msg.textContent = 'Uploading PDF to Firebase Storage...';
+    msg.style.color = 'var(--ink)';
+
+    try {
+      const storageRef = storage.ref('pdfs/' + Date.now() + '_' + file.name);
+      const snapshot = await storageRef.put(file);
+      const pdfUrl = await snapshot.ref.getDownloadURL();
+
+      await db.collection('lessons').add({ title, term, pdfUrl, questions, createdAt: Date.now() });
+      msg.textContent = 'Module and PDF published successfully!';
+      msg.style.color = 'var(--good)';
+    } catch(e) {
+      msg.textContent = 'Could not save: ' + e.message;
+      msg.style.color = 'var(--bad)';
+      saveBtn.disabled = false;
+    }
+  });
+}
+</script>
+</body>
+</html>
