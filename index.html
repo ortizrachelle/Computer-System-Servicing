@@ -890,15 +890,14 @@ function renderQuizExecution(lesson){
   }));
 
   const submitQuizAction = async (isAutoSubmit = false) => {
+    if (!isAutoSubmit) {
+      if (!confirm("Are u sure u want to submit?")) {
+        return;
+      }
+    }
+
     if (quizTimerInterval) clearInterval(quizTimerInterval);
     isTakingQuiz = false;
-
-    if (!isAutoSubmit && quizSelected.some(s=>s===null || s==='')){
-      document.getElementById('banner').innerHTML = '<div class="banner info">Answer every question first.</div>';
-      isTakingQuiz = true;
-      startTimer();
-      return;
-    }
 
     let earnedPoints = 0;
     let totalPossiblePoints = 0;
